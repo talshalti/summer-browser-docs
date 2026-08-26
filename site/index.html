@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self'; worker-src data:; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none';"/>
+    <meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"/>
+    <meta name="theme-color" content="#14151b" media="(prefers-color-scheme: dark)"/>
+    <title>Summer Docs</title>
+  <script type="module" crossorigin src="/summer-browser-docs/assets/docs-BcSxBnaD.js"></script>
+  <link rel="stylesheet" crossorigin href="/summer-browser-docs/assets/docs-2HhuUPaN.css">
+</head>
+<body>
+<a id="docs-skip-link" class="skip-link" href="#docs-main">Skip to documentation</a>
+<div class="docs-app">
+    <header class="docs-header" aria-label="Summer Docs">
+        <a id="docs-brand" class="docs-brand" href="#/" data-docs-route="#/">Summer Docs</a>
+        <button id="docs-menu-button" class="menu-button" type="button"
+                aria-controls="docs-sidebar" aria-expanded="false">Menu</button>
+        <form id="docs-search" class="docs-search" role="search">
+            <label class="visually-hidden" for="docs-search-input">Search documentation</label>
+            <span class="search-mark" aria-hidden="true">⌕</span>
+            <input id="docs-search-input" type="search" autocomplete="off" dir="auto"
+                   placeholder="Search Summer Docs"/>
+            <button id="docs-search-clear" class="search-clear" type="button" hidden>Clear search</button>
+        </form>
+        <label class="language-control">
+            <span class="visually-hidden">Documentation language</span>
+            <select id="docs-language" aria-label="Documentation language">
+                <option value="en">English</option>
+                <option value="he">עברית</option>
+                <option value="ar">العربية</option>
+                <option value="es">Español</option>
+                <option value="ru">Русский</option>
+            </select>
+        </label>
+    </header>
+
+    <div class="docs-layout">
+        <aside id="docs-sidebar" class="docs-sidebar">
+            <nav id="docs-navigation" aria-label="Documentation navigation"></nav>
+        </aside>
+
+        <main id="docs-main" tabindex="-1" aria-busy="true">
+            <p id="docs-language-fallback" class="language-fallback-notice"
+               role="status" hidden></p>
+            <section id="docs-link-notice" class="link-notice" role="status" hidden></section>
+            <nav id="docs-breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
+            <article id="docs-view">
+                <h1>Summer Docs</h1>
+                <p class="loading-state" role="status">Loading bundled documentation…</p>
+            </article>
+        </main>
+
+        <aside id="docs-toc" class="docs-toc" aria-labelledby="docs-toc-heading">
+            <h2 id="docs-toc-heading">In this section</h2>
+            <nav id="docs-toc-links"></nav>
+        </aside>
+    </div>
+
+    <footer id="docs-footer">Bundled with Summer for reliable offline access.</footer>
+</div>
+<p id="docs-live-region" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+</body>
+</html>

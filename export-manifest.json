@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "browserVersion": "2.5.0",
+  "sourceCommit": "5733ee1ec5aec8166800fe378528b3cc809d7810",
+  "basePath": "/summer-browser-docs/",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 32,
+      "sha256": "23302dd90b8bb74b44d365fafef8df20f809b61cb347023951ecf60a88a29651"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "bytes": 1009,
+      "sha256": "5743bd0353a641030fea5bd424ba13cc96d2c34c6e6b1a489408a96b09bb59a4"
+    },
+    {
+      "path": "docs/chrome-extensions.md",
+      "bytes": 102381,
+      "sha256": "3f81d0939cfcc3e56f35e45ff29d5073c05ad00fc5d652878cfdc7735cc2a949"
+    },
+    {
+      "path": "docs/default-browser.md",
+      "bytes": 2868,
+      "sha256": "413a940fcfe8240bd7d4178b9cd5c2dc7df3e45577095f3c948e5a3aaa216943"
+    },
+    {
+      "path": "docs/desktop-mobile-web-extension-differences.md",
+      "bytes": 59642,
+      "sha256": "4f7921448631faba4c5b230a11d31a6a1a05fbccaaf0a16be05e040e410cadd5"
+    },
+    {
+      "path": "docs/desktop-to-mobile-capability-reference.md",
+      "bytes": 87852,
+      "sha256": "2e2433ff164cc06ec93eb1851ca24e7fef4cb973f55db81f581c15f408a474ab"
+    },
+    {
+      "path": "docs/file-opening.md",
+      "bytes": 3179,
+      "sha256": "b2c0ce11886fa47c211b61911f38d3e6e9c28bc19decc3dbed5d82f2c6f4bc4f"
+    },
+    {
+      "path": "docs/language-preferences-and-translation.md",
+      "bytes": 7889,
+      "sha256": "56e42d22c77ed6ed4af9788987750e2b2ccc62435f7b1943a4c4edd248547548"
+    },
+    {
+      "path": "docs/multiple-windows.md",
+      "bytes": 2047,
+      "sha256": "5fe6f981e4cbac8544feaed55468e72306a818bcedbe902b645b8c8d2fd3b5af"
+    },
+    {
+      "path": "docs/privacy-policy.md",
+      "bytes": 4324,
+      "sha256": "2c9f8be0f86dc1080437fd0a0a06c899db8dda040c176981c4b93d76de2bc6f0"
+    },
+    {
+      "path": "docs/private-browsing.md",
+      "bytes": 3962,
+      "sha256": "f2f21bc8eb4a51281a4123a9c84bfaecf71fd0741ca9b13ce5cf1f951daf983a"
+    },
+    {
+      "path": "docs/release-notes/1.15.0/en.md",
+      "bytes": 2044,
+      "sha256": "3c84f3fd5d6f7174ee8a98008f8353b1894c947d0137e8f76b74715fcdc28aed"
+    },
+    {
+      "path": "docs/release-notes/1.15.1/en.md",
+      "bytes": 4428,
+      "sha256": "03d555e1777c8e7145b20c352dc420d2cbd8d303bdb81bd0aa9c4c3b2060415a"
+    },
+    {
+      "path": "docs/release-notes/1.15.22/ar.md",
+      "bytes": 1695,
+      "sha256": "ebfaf9489bd21db51ac726eb8dddefd0c377a09a88af96910893666d1686675c"
+    },
+    {
+      "path": "docs/release-notes/1.15.22/en.md",
+      "bytes": 1045,
+      "sha256": "2ead7651d074abff4784f49462e52656e6bf9049519a8995db65f17a6836a0ec"
+    },
+    {
+      "path": "docs/release-notes/1.15.22/he.md",
+      "bytes": 1497,
+      "sha256": "ca8b0e7436fd45bb10f7f417597d1a5d5e4edbff7766aaff4e265ae5f2bb4959"
+    },
+    {
+      "path": "docs/release-notes/1.15.23/ar.md",
+      "bytes": 1595,
+      "sha256": "8214fb2dac5a127a770a3cc459d1c104c3719961d9ab6a9b34e058bdf724bd6a"
+    },
+    {
+      "path": "docs/release-notes/1.15.23/en.md",
+      "bytes": 892,
+      "sha256": "561b49703651adb45fbf3f9633f449d310f5f3bb3d18a506fd2ce0b77d2e9735"
+    },
+    {
+      "path": "docs/release-notes/1.15.23/he.md",
+      "bytes": 1312,
+      "sha256": "c4d6c4d2da238112b476813aa26521c355aad2067c078e2618e4730ebc3ef3df"
+    },
+    {
+      "path": "docs/release-notes/1.15.5/ar.md",
+      "bytes": 930,
+      "sha256": "e96c725f24f61fc573c4ecc189f3c56869434b95886f572014b7f61518dcddf0"
+    },
+    {
+      "path": "docs/release-notes/1.15.5/en.md",
+      "bytes": 567,
+      "sha256": "8b9dc9f912edd114066ce24aab81f88738217a457db01d87c81e67796f415b16"
+    },
+    {
+      "path": "docs/release-notes/1.15.5/he.md",
+      "bytes": 859,
+      "sha256": "15149a4a237d7357bffcd6eacfc040f8e82bdd943faa1802171067812d9ce84f"
+    },
+    {
+      "path": "docs/release-notes/1.15.6/ar.md",
+      "bytes": 501,
+      "sha256": "85cd37489d5c3e367c8c77b9407bab4f4eb32ce98999dafa0f6ba55b560b6e97"
+    },
+    {
+      "path": "docs/release-notes/1.15.6/en.md",
+      "bytes": 284,
+      "sha256": "6ce9e97dcf87e77ba0d4256a2861cadd41b398f8400aaa8ed953a2bf1bc83cf3"
+    },
+    {
+      "path": "docs/release-notes/1.15.6/he.md",
+      "bytes": 425,
+      "sha256": "65dc93e9c7de4cf5c6e88b34a7f712c0de9fe3b239c9f93c7399e11913edad7b"
+    },
+    {
+      "path": "docs/release-notes/1.16.0/ar.md",
+      "bytes": 1132,
+      "sha256": "58b1a9ed72abd497fa362a70a337ffb4a2e76a2e28b1eadb580c62794ff82d2e"
+    },
+    {
+      "path": "docs/release-notes/1.16.0/en.md",
+      "bytes": 727,
+      "sha256": "1fa8a00a1fddfaca8adae43d472b4fb00ce30f1177c3f4517af236777468843a"
+    },
+    {
+      "path": "docs/release-notes/1.16.0/he.md",
+      "bytes": 1049,
+      "sha256": "f4758ad314d9f4d9daedb65611f5639102f7033de5357621598359a836200be5"
+    },
+    {
+      "path": "docs/release-notes/1.16.1/ar.md",
+      "bytes": 457,
+      "sha256": "d5bd2742456bf62904c4f50ae2252eda2280334662a5bc055f050d231e8296ed"
+    },
+    {
+      "path": "docs/release-notes/1.16.1/en.md",
+      "bytes": 278,
+      "sha256": "38699a2408a4350f189fec356f90919858dc50ec579f5ca550c12d74441d85e4"
+    },
+    {
+      "path": "docs/release-notes/1.16.1/he.md",
+      "bytes": 421,
+      "sha256": "b74b56a446c9df750bec04b6b758567af703acec59fd575544a86faab65089ff"
+    },
+    {
+      "path": "docs/release-notes/1.16.2/ar.md",
+      "bytes": 281,
+      "sha256": "7b072249ba08c4274010cf54e7b9bbae0404c4802c74df6d99d0b033d63828ef"
+    },
+    {
+      "path": "docs/release-notes/1.16.2/en.md",
+      "bytes": 204,
+      "sha256": "dc669981d290b1ebde5717732df3c661a01f2c5d7b5ed59fc27940d772f8f844"
+    },
+    {
+      "path": "docs/release-notes/1.16.2/he.md",
+      "bytes": 243,
+      "sha256": "bde205883bba8ff0da4f84ff6accffdb4ec1793739aa7ff4024f33278e086efc"
+    },
+    {
+      "path": "docs/release-notes/2.0.0/ar.md",
+      "bytes": 2255,
+      "sha256": "8750f38d241c68da43fd4db06b6958c4bca2b0ab8069ab5a44dbf07b8adcc12a"
+    },
+    {
+      "path": "docs/release-notes/2.0.0/en.md",
+      "bytes": 1472,
+      "sha256": "49b5b74d15de10ffddb1ca4cf28cd3c7e8c1ac1aa1d5cce5f1a77d537cb9d868"
+    },
+    {
+      "path": "docs/release-notes/2.0.0/he.md",
+      "bytes": 2018,
+      "sha256": "f967f67945e37ba9fdd357579796ed423ab19868e4e6dd789afd30423ceca191"
+    },
+    {
+      "path": "docs/release-notes/2.1.0/ar.md",
+      "bytes": 1519,
+      "sha256": "02e38f86030996ebcd86e2bf89219b20bbef45c92c0b1aa92cf4e5bf92b34b1e"
+    },
+    {
+      "path": "docs/release-notes/2.1.0/en.md",
+      "bytes": 992,
+      "sha256": "3a13d59d1242f06a529d3ff93811a25b15008f03010f2eeb808e8f121f7a5e86"
+    },
+    {
+      "path": "docs/release-notes/2.1.0/he.md",
+      "bytes": 1335,
+      "sha256": "37e863264c2e8a6be7fe8b11851944bafa943befd6d019cd25ada95265b4da32"
+    },
+    {
+      "path": "docs/release-notes/2.1.1/ar.md",
+      "bytes": 717,
+      "sha256": "8ce100eed0e5682e0957bbe4eda36fa49e060d5e72cb7dbe218701fa2f229a2b"
+    },
+    {
+      "path": "docs/release-notes/2.1.1/en.md",
+      "bytes": 510,
+      "sha256": "285a4d181d406f3b9365ff3e0a5ee55efd9ca12cd6706ab246687aee2467578f"
+    },
+    {
+      "path": "docs/release-notes/2.1.1/he.md",
+      "bytes": 669,
+      "sha256": "90aa6ff92d7f2f77e774202515969000fab66300e9ba3dc38e9948aaf379daa2"
+    },
+    {
+      "path": "docs/release-notes/2.2.0/ar.md",
+      "bytes": 1392,
+      "sha256": "250883f72a0670fab94d61d6de9a315e14de9cca27632cda6cd89a28e00160a4"
+    },
+    {
+      "path": "docs/release-notes/2.2.0/en.md",
+      "bytes": 848,
+      "sha256": "6d8e7ad03f121d6856c87be750359217819430a3ea1af3b6875add6172d78d93"
+    },
+    {
+      "path": "docs/release-notes/2.2.0/he.md",
+      "bytes": 1231,
+      "sha256": "564f6cb2f963cb2e513de047bcbeee8419b34ca18363b6c3c5c1aa1ed6b66c69"
+    },
+    {
+      "path": "docs/release-notes/2.3.0/ar.md",
+      "bytes": 1634,
+      "sha256": "2e6b645bb33b8295266517d1843edc14c5cb4ffe97b30246b9a888b2a9058dc7"
+    },
+    {
+      "path": "docs/release-notes/2.3.0/en.md",
+      "bytes": 1011,
+      "sha256": "1df364a68a710a136ec3fb9543e7604e7062e5e952b19086ab9bffa36eba787d"
+    },
+    {
+      "path": "docs/release-notes/2.3.0/he.md",
+      "bytes": 1411,
+      "sha256": "6c8d349e2d3ec77ad8314d833b5114d61899c122baca96fa472597e0accee475"
+    },
+    {
+      "path": "docs/release-notes/2.3.1/ar.md",
+      "bytes": 1641,
+      "sha256": "90cfc07a5faac647e81538e6bd5c9f48b072b5fc97fd4e8eb9305e1367572eb4"
+    },
+    {
+      "path": "docs/release-notes/2.3.1/en.md",
+      "bytes": 940,
+      "sha256": "81ec2e546790797a35d37fd1df67f2a5dc0343539a807fdb2bec8326c66122b6"
+    },
+    {
+      "path": "docs/release-notes/2.3.1/he.md",
+      "bytes": 1348,
+      "sha256": "e1ac4e6bd890006dd82dc756f42e64dc5108d91d15041b95210e94e2aac248ba"
+    },
+    {
+      "path": "docs/release-notes/2.3.2/ar.md",
+      "bytes": 807,
+      "sha256": "49e603992db728cf3baabe3681506a58e0929b0f02a98f108fa42d6be964410b"
+    },
+    {
+      "path": "docs/release-notes/2.3.2/en.md",
+      "bytes": 474,
+      "sha256": "9fb7aa8843dddced8a5e0d49099cfcb515d0339b60564b6ab0b9df56d2c928c4"
+    },
+    {
+      "path": "docs/release-notes/2.3.2/he.md",
+      "bytes": 710,
+      "sha256": "2c7fee83b7be64ec25e56f101a6c85eee7f03c5dfdb42859bf6bd36305ac4684"
+    },
+    {
+      "path": "docs/release-notes/2.4.0/ar.md",
+      "bytes": 3143,
+      "sha256": "aae9ca80a107d3aa3e634592c873006fc04400788532717fb3d8849dacb2feeb"
+    },
+    {
+      "path": "docs/release-notes/2.4.0/en.md",
+      "bytes": 1934,
+      "sha256": "25b04acbbf6274da9c201a090b4c6728109e2df7ac63c2130d01f24d51adb75b"
+    },
+    {
+      "path": "docs/release-notes/2.4.0/he.md",
+      "bytes": 2818,
+      "sha256": "58446397787e8e14a4412f067694df05da107a7258127f0c0d742a203416fb17"
+    },
+    {
+      "path": "docs/release-notes/2.5.0/ar.md",
+      "bytes": 1932,
+      "sha256": "cc1feeee1a1d92eb07012f1474a53e5dfaaf7f826159983101d6067e71873ee9"
+    },
+    {
+      "path": "docs/release-notes/2.5.0/en.md",
+      "bytes": 1129,
+      "sha256": "fa22144cfc33ae246c8178bc7a5b26266fae82471116fa5ad0c5f5a5f4ac61e6"
+    },
+    {
+      "path": "docs/release-notes/2.5.0/he.md",
+      "bytes": 1747,
+      "sha256": "f0747cba3938c9846dfe337eb00c819c70128daa54fe0056eb291f2dee650143"
+    },
+    {
+      "path": "docs/summer-app-apis.md",
+      "bytes": 5729,
+      "sha256": "646cd64025e5b19ee43348ea705efa69edaa54a834b28da9a4843472f53535e5"
+    },
+    {
+      "path": "docs/summer-app-development.md",
+      "bytes": 20393,
+      "sha256": "5b396527f59703daed31553496fde2e99975371a4063bff561990ad0994ef8e5"
+    },
+    {
+      "path": "docs/summer-app-settings.md",
+      "bytes": 12040,
+      "sha256": "0dffadb24037d88026ec6321db05cfeba222caaca124bef4ddcd67163393abfc"
+    },
+    {
+      "path": "docs/summer-app-submission.md",
+      "bytes": 8133,
+      "sha256": "d5034e9fda1acea9494683c084e148ca08223a60f5aab336a83210c6271dbc4c"
+    },
+    {
+      "path": "docs/summer-app-suggestions.md",
+      "bytes": 7792,
+      "sha256": "426f6b31365f7fed3023422d72ce22b2913d17240121926d8000eea14751e6a6"
+    },
+    {
+      "path": "docs/summer-app-widgets.md",
+      "bytes": 17990,
+      "sha256": "7a19feb20ef33335b00729e3437600d472be62a5861814672547edfb094caaee"
+    },
+    {
+      "path": "docs/summer-builtin-webpages.md",
+      "bytes": 10388,
+      "sha256": "3682ef42628dfc494abd37134a0386edda56879d0de30c20123db0312d4188ae"
+    },
+    {
+      "path": "docs/summer-cli.md",
+      "bytes": 13818,
+      "sha256": "d52c1565cab52ffae25ecd4bec6a9127fb3134f24149f1f75ff396dec37a357e"
+    },
+    {
+      "path": "docs/window-summi-api.md",
+      "bytes": 25851,
+      "sha256": "91b63a1d899d60196eb0471d1f60a5b24ad9e3df543a9ebab9b01f7aa1abac55"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1228,
+      "sha256": "72a3737040d079ec29aadcf44b700d9e5ff81cef704e918e4401284769102c1e"
+    },
+    {
+      "path": "release-manifest.schema.json",
+      "bytes": 1139,
+      "sha256": "445bf144a6f47b6d06a11a017cdb2c28db798f6082575ed2c24cb5b1b7581270"
+    },
+    {
+      "path": "RIGHTS.md",
+      "bytes": 515,
+      "sha256": "5c44399415826ce57b17a2681a2e5f22e3cbb9af34cd70c34a39eae224593eb2"
+    },
+    {
+      "path": "site/.nojekyll",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "site/404.html",
+      "bytes": 3487,
+      "sha256": "5bac40bbab1405d3d47dafb785542954b4508bd59f07e5c2f0c21961d62819d5"
+    },
+    {
+      "path": "site/assets/64x64-B1L0mOhL.png",
+      "bytes": 4640,
+      "sha256": "9c105dd1d75bc37d9a56d2fcd8607a904fc4033b67d3f349aaed26f070150dc9"
+    },
+    {
+      "path": "site/assets/docs-2HhuUPaN.css",
+      "bytes": 22171,
+      "sha256": "79afd14b80d0e96528cd231301a24fd26583a42b36f24c50e96e12f56258d96f"
+    },
+    {
+      "path": "site/assets/docs-BcSxBnaD.js",
+      "bytes": 1031271,
+      "sha256": "d62925a0f63370007c85bf662d595a07f53b31c65af78b43714941eb85cac5ed"
+    },
+    {
+      "path": "site/fonts/NotoNaskhArabic-VariableFont_wght.ttf",
+      "bytes": 305724,
+      "sha256": "ea3dc89317339ef864aef318a2cf461c89b646caf6cf1500361ecb6dd548e800"
+    },
+    {
+      "path": "site/index.html",
+      "bytes": 3487,
+      "sha256": "5bac40bbab1405d3d47dafb785542954b4508bd59f07e5c2f0c21961d62819d5"
+    }
+  ]
+}
