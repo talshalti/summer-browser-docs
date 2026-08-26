@@ -1000,7 +1000,7 @@ is not the target where it would weaken Summer's permission or isolation model.
 | Desktop `commands`, `omnibox`, and `sidePanel` | On desktop, string or platform-keyed shortcuts are normalized with Chrome's modifier rules, active Summer accelerators and AltGr combinations remain unavailable, conflicts resolve by stable extension ID and appear unassigned through `getAll()`, omnibox deletion/disposition events are complete, and default or tab-specific native panel state is wired into Summer UI; tab panels hide and restore with tab activation. | First-class Summer integrations with documented bounds rather than Chrome UI emulation. | Add a user-facing browser-owned shortcut remapping surface before claiming Chrome's shortcut-management UI; retain deterministic conflicts, native panel state, and consistent keyboard and accessibility behavior. | `electron/main/extensions/extensionChromeApis.ts`, `electron/main/extensions/extensionSidePanels.ts`, `ui/store/suggestions.ts` |
 | Native messaging | `sendNativeMessage()` and `connectNative()` discover platform-installed Chrome/Chromium manifests, require the exact extension origin in `allowed_origins`, canonicalize the executable, and launch without a shell. One-shot calls use bounded framing and a 30-second deadline; persistent ports authenticate ownership, enforce global/per-extension process and pending-write limits, deliver bounded framed messages, and terminate on disconnect, extension unload, or shutdown. | First-class bounded transport with strict host ownership, framing, backpressure, and lifecycle cleanup; native-host installation and discovery UI remain platform-owned. | Retain authenticated ownership and guaranteed process termination while keeping host discovery limited to compatible Chrome/Chromium registrations. | `electron/main/extensions/extensionNativeMessaging.ts`, `electron/main/extensions/extensionChromeApis.ts` |
 | File-scheme access | Disabled by default. For an extension whose reviewed host declarations include file URLs, the manager can grant or revoke access; Summer reloads the extension with the matching Electron `allowFileAccess` setting and the authenticated status method reports the active grant. | Explicit browser-owned per-extension grant tied to reviewed manifest access. | Keep file access disabled by default, require an explicit user decision, revoke stale grants when reviewed file-host access disappears, and never infer the grant from a host declaration alone. | `electron/main/extensions/extensionManager.ts`, `electron/main/extensions/extensionChromeApis.ts`, `electron/preload/extensionApiShim.ts` |
-| Incognito access | Reports false. Summer does not currently load extensions into its isolated private-profile session. | Honest unavailable result; the pinned Electron runtime cannot load an extension into Summer's nonpersistent in-memory session, while changing that session to a persistent partition would violate the no-trace private-window boundary. | Add default-off split/spanning grants only after upstream in-memory-session support or an independently isolated, no-trace extension host exists. | `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionChromeApis.ts`, `electron/main/front/sessions.ts` |
+| Incognito access | Disabled per extension by default. Extensions Manager can explicitly allow or revoke access; `isAllowedIncognitoAccess()` reports that browser-owned grant. Allowed extensions are loaded separately into the disposable private session while at least one private window exists. | Bounded split runtime. Electron requires a path-backed persistent session to load an extension, so Summer uses a random temporary directory, unloads extensions, clears Chromium data, attempts whole-directory deletion after the last private window, and reclaims locked dead-process leftovers at startup. Reuse is blocked only when neither logical clearing nor physical removal succeeds. | Retain explicit per-extension consent and isolated lifecycle cleanup; adopt a true in-memory extension host if Electron provides one. | `electron/main/extensions/extensionManager.ts`, `electron/main/extensions/privateExtensionSession.ts`, `electron/main/front/privateSessionStorage.ts`, `electron/main/front/sessions.ts` |
 | IDs without `crypto.randomUUID` | Browser or Node UUIDs are preferred; supported older contexts use `crypto.getRandomValues`, and identifier generation rejects when secure randomness is unavailable. | Cryptographically random but still non-authoritative identifiers. | Use browser-provided UUIDs in every supported context, or a cryptographically random browser-owned fallback; identifiers remain non-authoritative. | `electron/preload/extensionApiShim.ts` |
 
 ## Security boundary
@@ -1018,6 +1018,10 @@ Browser-owned extension service
         |
         v
 persist:summer Session.extensions
+        |
+        | explicit per-extension private grant
+        v
+random disposable private Session.extensions
 ```
 
 The browser process owns the native file and directory pickers, downloads,
@@ -1096,12 +1100,24 @@ tab or extension is removed.
 - Electron natively supports only a subset of Chrome extension APIs. Summer's
   compatibility bridge fills many missing namespaces, but some behaviors remain
   partial until their Summer UI surfaces or platform services are implemented.
-- Extensions remain disabled in private windows. Summer's private profile uses
-  a nonpersistent in-memory Electron session, and the pinned Electron runtime
-  cannot load extensions into that session. Replacing it with a persistent
-  partition would violate Summer's no-trace private-profile boundary; split or
-  spanning incognito support therefore requires upstream runtime support or an
-  independently isolated extension host.
+- Private access is disabled independently for every extension until the user
+  allows it in Extensions Manager. The private host deliberately receives
+  Electron's native extension surface, not Summer's regular-profile API
+  augmentation: regular-profile bookmark, history, cookie, download, and other
+  browser-owned brokers must not become reachable from a private extension
+  context merely because the same extension is enabled normally. Compatibility
+  features supplied only by those Summer brokers therefore remain unavailable
+  in private windows.
+- Summer validates the manifest `incognito` mode. `not_allowed` disables the
+  private-access control and cannot be overridden; both Chrome's default
+  `spanning` declaration and an explicit `split` declaration execute through
+  Summer's isolated split private host, which is reported in manager state.
+- Electron cannot load extensions into a nonpersistent in-memory session. The
+  private host is consequently path-backed in a random temporary directory.
+  Summer clears that directory and attempts deletion after the last private
+  window. Files Chromium keeps locked are retried on later lifetimes and startup;
+  crash recovery and directory deletion are best effort rather than
+  cryptographic secure erasure.
 - `storage.sync` remains a quota-compatible, device-local provider. True sync
   requires an authenticated and encrypted cross-device service, identity and
   recovery UX, conflict resolution, and compatible quota semantics; Summer has

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "browserVersion": "2.5.0",
-  "sourceCommit": "349ed89ca5bcee84d86d31911b71f865abf61c62",
+  "sourceCommit": "9941bb45a78f8391bae6f6b59326183f1c4e27fb",
   "basePath": "/summer-browser-docs/",
   "files": [
     {
@@ -16,8 +16,8 @@
     },
     {
       "path": "docs/chrome-extensions.md",
-      "bytes": 102381,
-      "sha256": "3f81d0939cfcc3e56f35e45ff29d5073c05ad00fc5d652878cfdc7735cc2a949"
+      "bytes": 103726,
+      "sha256": "2aeac475a4108f671441bd980cf93d74a9d79ef9a5679ae26005be82af0bf7a2"
     },
     {
       "path": "docs/default-browser.md",
@@ -56,8 +56,8 @@
     },
     {
       "path": "docs/private-browsing.md",
-      "bytes": 3962,
-      "sha256": "f2f21bc8eb4a51281a4123a9c84bfaecf71fd0741ca9b13ce5cf1f951daf983a"
+      "bytes": 5808,
+      "sha256": "26a94d4dde829cbad8cdf5ca79a1963150f5bd576d05d9c06610d2f022d5f804"
     },
     {
       "path": "docs/release-notes/1.15.0/en.md",
@@ -341,8 +341,8 @@
     },
     {
       "path": "docs/summer-builtin-webpages.md",
-      "bytes": 10388,
-      "sha256": "3682ef42628dfc494abd37134a0386edda56879d0de30c20123db0312d4188ae"
+      "bytes": 11543,
+      "sha256": "6814b380723069c397583bd97ae47dee8decb9b578e21206bc0659de6a92657b"
     },
     {
       "path": "docs/summer-cli.md",
@@ -377,7 +377,7 @@
     {
       "path": "site/404.html",
       "bytes": 3487,
-      "sha256": "5bac40bbab1405d3d47dafb785542954b4508bd59f07e5c2f0c21961d62819d5"
+      "sha256": "a72a2ff7125fbd34ab9098cd69e8ed570f901083d8ff5ef82f09d0879e042ab2"
     },
     {
       "path": "site/assets/64x64-B1L0mOhL.png",
@@ -390,9 +390,9 @@
       "sha256": "79afd14b80d0e96528cd231301a24fd26583a42b36f24c50e96e12f56258d96f"
     },
     {
-      "path": "site/assets/docs-BcSxBnaD.js",
-      "bytes": 1031271,
-      "sha256": "d62925a0f63370007c85bf662d595a07f53b31c65af78b43714941eb85cac5ed"
+      "path": "site/assets/docs-BBURDWNP.js",
+      "bytes": 1031455,
+      "sha256": "82b1e88378720e9e92dd5b91d435b585d1c91d1b6a2593919bf3c1d22d78ff12"
     },
     {
       "path": "site/fonts/NotoNaskhArabic-VariableFont_wght.ttf",
@@ -402,7 +402,7 @@
     {
       "path": "site/index.html",
       "bytes": 3487,
-      "sha256": "5bac40bbab1405d3d47dafb785542954b4508bd59f07e5c2f0c21961d62819d5"
+      "sha256": "a72a2ff7125fbd34ab9098cd69e8ed570f901083d8ff5ef82f09d0879e042ab2"
     }
   ]
 }

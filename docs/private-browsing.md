@@ -1,9 +1,10 @@
 # Private browsing (incognito)
 
 Private browsing opens a second, tabbed browser window that shares Summer's Vue
-interface but keeps no trace in the user profile: no cookies, cache, history,
-session, downloads list, preserved tabs, saved passwords, autofill profiles, or
-credit cards. It is a separate runtime browser surface, not a profile.
+interface but does not write browsing state into the regular user profile: no
+cookies, cache, history, session, downloads list, preserved tabs, saved
+passwords, autofill profiles, or credit cards are merged into that profile. It
+is a separate disposable runtime surface, not another durable user profile.
 
 ## Opening and closing
 
@@ -22,13 +23,25 @@ credit cards. It is a separate runtime browser surface, not a profile.
 
 ## Isolation model
 
-- Every incognito tab renders on the in-memory session
-  `INCOGNITO_PARTITION = "incognito"` created with `{cache: false}` in
-  `electron/main/front/sessions.ts`. There is no `persist:` prefix, so Electron
-  never writes an on-disk partition for it.
+- Each Summer process owns one randomly named private-session directory beneath
+  the operating-system temporary directory. Electron opens it through
+  `session.fromPath(..., {cache: false})`; it never shares the regular Summer
+  profile. This path-backed session is required because Electron can load
+  extensions only into persistent sessions.
+- Summer records the one directory it creates, unloads private extensions,
+  calls Electron's data-clear and connection-close operations, and attempts to
+  remove the entire directory after the final private window closes. Either a
+  complete Chromium clear or complete physical removal must succeed before a
+  later private lifetime can start. Windows can retain locks on cleared Chromium
+  database sidecars until process exit; those files are retried on later
+  lifetimes and startup. The isolated path has an owner marker bound to both the
+  process ID and operating-system process-start identity. Startup removes
+  recognized leftovers whose owner identity is no longer live, while leaving
+  live parallel Summer instances and unknown entries alone.
 - Built-in `summer-internal`, `summer`, and `sap` protocol handlers and the
   download session listener are registered on the incognito session too, so
-  Summer App pages work identically but stay in-memory.
+  Summer App pages work identically but remain isolated from the regular
+  profile and are included in private-lifetime cleanup.
 - Permission decisions (`setPermissionCheckHandler` /
   `setPermissionRequestHandler`) run through the same
   `PermissionsRuntime` with `persistAllowed = false`; allow/deny choices are
@@ -67,5 +80,16 @@ than moving its destination into the persistent session.
   runs under the same sandboxing and navigation restrictions.
 - Private browsing is not a profile, an account, or a VPN, and it does not hide
   activity from the network or the site you visit.
-- No extension incognito-splitting is provided; extensions are not granted
-  private-session access (see `docs/chrome-extensions.md`).
+- Extension access is disabled separately for every extension by default. A
+  user can opt one in from Extensions Manager. Allowed extensions are loaded
+  into the isolated private session, not the regular session's storage. Summer
+  refuses extensions whose manifest declares `"incognito": "not_allowed"` and
+  reports that its private host always uses split, isolated execution.
+- Native popups opened by private pages close with their opener, ensuring no
+  unleased popup can retain the private session after its owning window closes.
+- Private storage deletion is best effort, not a secure-erasure guarantee.
+  While a private window is open, Chromium may write into the temporary
+  directory. A crash, forced shutdown, filesystem snapshot, backup, malware, or
+  forensic recovery can leave or recover those bytes until startup cleanup (or
+  the operating system) removes them. Use full-disk encryption where recovery
+  of temporary files is a concern.

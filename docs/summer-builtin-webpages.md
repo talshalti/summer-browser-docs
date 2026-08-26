@@ -9,6 +9,25 @@ The planned documentation site's route, content, ownership, versioning, and
 quality contract is recorded in
 [`summer-docs-information-architecture.md`](summer-docs-information-architecture.md).
 
+Summer currently ships these user-facing browser pages:
+
+| URL | Purpose |
+| --- | --- |
+| `summer://downloads/` | Search and manage persisted downloads for the current profile |
+| `summer://history/` | Opt into local history recording, then search, open, or delete saved visits |
+| `summer://settings/` | Open a validated section in the browser-owned Settings panel |
+
+These pages deliberately keep the generic internal bridge disabled. Downloads
+and History receive narrowly scoped preload APIs, while Settings only requests
+a validated Settings destination from the owning regular browser window.
+History recording is off by default and must be enabled by the user on the
+History page. Turning recording off stops future capture without deleting
+existing entries; deletion remains an explicit, separately confirmed action.
+The browser-page copy currently has reviewed complete English and Hebrew packs.
+Other interface locales deliberately use Vue-i18n's English fallback for these
+new page keys; the locale validator permits only this declared fallback while
+continuing to require pre-existing Downloads notification translations.
+
 The shared data registry in
 [`shared/summerBuiltinWebpages.json`](../shared/summerBuiltinWebpages.json) is
 the single source of truth for these pages. The typed helpers in
