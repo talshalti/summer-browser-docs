@@ -72,10 +72,10 @@ export function deactivate() {
 }
 ```
 
-Summer Apps may currently provide a native form generated from `sap.json`.
-The schema accepts packaged localization metadata and a custom-view declaration,
-but the browser does not load those resources or expose a custom-view bridge
-yet. Treat both as planned input, not available UI.
+Summer Apps may provide a native form generated from `sap.json` and sandboxed
+desktop custom views. Packaged localization resources remain planned; localized
+text declarations use a known browser-interface translation when their key
+exists in the selected language, otherwise their fallback text.
 
 Any installed app role may declare settings. Summer owns validation,
 persistence, accessibility, theming, and change notifications.
@@ -203,6 +203,13 @@ snapshot. Updates use
 the source frame, request ID, concurrency, declared fields, and values before
 persisting anything. Secret values are never sent into the frame.
 
+The desktop proxy also installs a browser-owned size observer in each custom
+view. It reports document-height changes to browser chrome so ordinary settings
+pages grow with their content instead of adding a nested scrollbar. Browser
+chrome accepts reports only from the exact current frame, ignores non-finite
+values, and clamps the resulting height to 270–1,600 CSS pixels. Larger pages
+remain scrollable inside that bounded frame.
+
 Custom views are unavailable on mobile hosts for now; keep essential settings
 available through native manifest fields.
 
@@ -236,6 +243,82 @@ app-owned entries, prioritizes trusted built-ins when that bound is reached,
 and removes an entry immediately when its app is disabled or uninstalled. The
 entry opens the same validated native form and sandboxed custom content used by
 the app's App info settings tab; it does not grant a new privileged API.
+Browser-owned hubs may group closely related entries from the same trusted
+built-in app without changing the app settings contract or its security
+boundary.
+
+## Additional desktop Settings pages
+
+An app may declare up to four `settings.pages`, independently of its existing
+native form, `customView`, and `sidebar`. Each page normally creates an entry
+within the same eight-entry global sidebar bound. Mesh is the browser-owned
+exception: its **Mesh network** and **My Devices** surfaces appear as tabs in
+one **Link** Settings entry:
+
+```json
+"pages": [{
+  "id": "my-devices",
+  "label": {"key": "myDevices.title", "fallback": "My Devices"},
+  "placement": "before-apps",
+  "path": "/my-devices",
+  "actions": {"invite": "/actions/my-devices/invite"},
+  "navigation": "installed-apps"
+}]
+```
+
+IDs and page paths must be unique. Page and action paths are bounded, literal
+app-relative paths without query strings, fragments, encoded characters, or
+traversal segments. Each page may declare at most sixteen named POST actions.
+The desktop loads `summer-app-settings://<app-id>/<path>` into the existing
+opaque `sandbox="allow-scripts"` frame. It retains the same restrictive CSP;
+the frame cannot fetch, submit forms, navigate other frames, or call Electron.
+App requests from this bridge include `x-summer-settings-view: 1`, allowing an
+app to render a bridge adapter instead of its normal standalone page.
+Mesh uses this marker to omit the standalone My Devices link from its Identity
+view, because iframe navigation to `sap:` is blocked. Use the browser-owned
+**Link → My Devices** tab instead.
+The host also supplies `accept-language` from its selected interface locale on
+initial GET, POST, reload, and same-page redirect requests. It does not forward
+an app-supplied language header. A language change recreates the frame, and
+late replies to the previous frame are discarded. The **My Devices** title has
+English, Hebrew, and Arabic copy; other desktop packs currently keep its English
+fallback label until reviewed translations are available.
+
+After the existing `summer-app-settings:ready` handshake, the frame may send
+these version-1 messages to its parent with a unique `requestId` (1–64 ASCII
+letters, digits, underscores, or hyphens):
+
+- `summer-app-settings:action`, with a declared `action` ID and `fields`, a
+  record of string values. The host accepts at most 32 fields, 8,192 characters
+  per value, and 16 KiB after URL encoding.
+- `summer-app-settings:reload`, with no action or fields. The host GETs only the
+  same declared page. Apps can replace a status region without resetting input.
+- `summer-app-settings:open-app`, with an installed `appId` and optional
+  `fragment` (at most 256 characters, no controls or spaces). This requires
+  `navigation: "installed-apps"` and active user interaction in browser chrome.
+  The host validates that the target is enabled and constructs only its fixed
+  `sap://<app-id>/` root plus the fragment, opening it in a normal tab.
+
+Action and reload responses use `summer-app-settings:action-result` with
+`version: 1`, `requestId`, `ok: true`, `html`, and `status`. Navigation success
+has no HTML. Failures have `ok: false` and `error`. The app owns rendering this
+HTML within its existing sandbox; browser chrome never inserts it into its DOM.
+HTML is UTF-8 and bounded to 512 KiB. A POST may redirect once with HTTP 303
+back to the exact declared page; all other redirects are rejected. The main
+process independently validates declarations, enabled state, input sizes, and
+a maximum of four concurrent requests per chrome window. Private windows cannot
+invoke this bridge, so additional app pages are omitted from their sidebar.
+For Mesh, **Link** therefore retains only the **Mesh network** tab in a private
+window. Existing native app settings entries remain available. A directly
+selected additional page shows the existing private-window restriction message
+instead of creating an iframe, and any stale frame request receives an immediate error.
+Closing or changing pages discards late renderer replies.
+
+Use this page bridge for transient state and user actions. Keep persistent
+configuration in the existing native settings API. Apps must continue to
+authorize their own actions and bind forms to their current app/profile state;
+declaring a route does not replace those checks. Mobile hosts do not render
+these desktop pages.
 
 ## App access and change notifications
 

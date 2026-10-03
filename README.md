@@ -13,6 +13,11 @@ Release binaries are attached to GitHub Releases only after their platform
 release checks pass. Always verify the published SHA-256 checksums and the
 platform signature before running a direct-download build.
 
+Windows, macOS, and Android direct downloads use independent platform-version
+tags such as `windows-v2.5.0`; they may publish different versions at different
+times. iOS publication remains in Apple's App Store/TestFlight channel and is
+linked from the documentation rather than attached as a public IPA.
+
 ## Documentation source
 
 Files in this repository are exported from the exact private Summer Browser

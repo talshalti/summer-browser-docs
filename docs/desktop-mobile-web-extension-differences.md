@@ -1,16 +1,50 @@
 # Chrome WebExtensions: desktop and phone differences
 
-> **Current Version 57 boundary:** desktop still uses Electron/Chromium's
-> extension engine. Mobile package management remains dynamic and generic, but
-> execution requires an engine-owned WebExtension runtime with an enforceable
-> isolated-world CSP. Android WebView and iOS 15–18.3 fail closed and display
-> `unsupported-engine`; iOS 18.4+ `WKWebExtension` integration is in progress,
-> while Android execution is blocked by the current no-emulation/no-alternate-
-> engine constraint. The detailed V46–V56 rows below are historical compatibility
+> **Current boundary:** desktop still uses Electron/Chromium's extension engine.
+> Mobile package management remains dynamic and generic. Android retains System
+> WebView as its only page/DOM renderer and now uses isolated standalone QuickJS
+> for compatible MV3 background JavaScript, with separately advertised native
+> request-stage DNR, including bounded RE2/J URL-regex matching and verified
+> package-resource substitution for non-document GETs, resource-free
+> declarative-CSS subsets, signed manifest/dynamic isolated content JavaScript,
+> and explicit MV3 MAIN-world immediate scripting in the authenticated current
+> top frame. It does not embed a replacement Chromium, Gecko, or other browser
+> stack. Declarative MAIN-world scripts, exact pre-page-script `document_start`,
+> content APIs beyond runtime/storage, complete CSP isolation, and private execution remain fail-closed;
+> iOS work is paused. The detailed V46–V56 rows below are historical compatibility
 > implementation records, not currently enabled execution. See
-> [Mobile WebExtension engine migration](mobile-web-extension-engine-migration.md).
+> [Android QuickJS extension runtime](android-quickjs-extension-runtime.md).
 
-Status: Summer 2.1.2 mobile compatibility Version 56
+Status: current Android compatibility Version 89; iOS paused
+
+## Desktop integration audit (2026-09-05)
+
+The read-only comparison used mobile checkout base
+`f58b443d42f91ea104d020bf8576896d31db8f87` and Gitea/cached `origin/master`
+`71adf2bbb46daa5a9756efda90bf3cd1c01ba842`. It did not merge or port master.
+The desktop column and Version 56 offscreen description below retain historical
+implementation context; they must not be read as a fresh master-parity claim.
+
+Master's `fec63882` and `e2ec0ad0` switch desktop offscreen ownership/lifecycle
+to native Electron integration and describe that support as limited, including
+unavailable extension-page-to-offscreen messaging. This mobile checkout still
+contains the earlier desktop hidden-document implementation. Import the runtime,
+compatibility metadata, tests, and documentation coherently; copying a supported
+label alone does not import the capability. Android's independently authorized
+`WORKERS` subset is not broadened by those desktop changes.
+
+Master also adds request-correlated navigation-failure reporting. Android has
+neither the matching `webRequest.onErrorOccurred` stream nor top-frame
+`webNavigation.onErrorOccurred` projection. Its document-bound native navigation
+failure callback is a possible next bounded source, not evidence of request
+identity/method, child-frame attribution, or desktop event parity. Existing tab
+normalization, authenticated current-tab/window ownership, main-frame loading,
+early navigation observation, and sandbox-page privilege exclusion were already
+represented in the mobile work. No shared Extensions Manager contract delta
+was identified in this comparison. Recheck the master revision before resuming
+integration, since this audit is a snapshot.
+
+## Shared installation, separate execution
 
 Summer uses the same bundled **Extensions Manager** Summer App on desktop,
 Android, and iPhone. The package, routes, review language, installed-extension
@@ -33,34 +67,35 @@ The central product rule is:
 | Host engine | Electron/Chromium extension loader | Android WebView plus Summer's compatibility runtime | WKWebView/WebKit plus Summer's compatibility runtime |
 | Manager UI | Shared Extensions Manager Summer App | Same app and stored review model | Same app and stored review model |
 | Chrome Web Store | Dynamic signed CRX download | Dynamic signed CRX3 download | Dynamic signed CRX3 download |
-| Local CRX | Available | Hidden | Hidden |
+| Local CRX | Available | Signed CRX3 through the system picker and existing permission review; [verification status](android-local-crx-installation.md) | Hidden |
 | Load unpacked | Available | Hidden | Hidden |
 | Per-extension code | None required | None required | None required |
 | Package resources | Loaded by Chromium | Exact CRX stored by SHA-256 and indexed natively | Exact CRX stored by SHA-256 and indexed natively |
-| Website-visible package resources | Chromium enforces manifest `web_accessible_resources` | Version 48 checks the exact packaged path and authenticated HTTP(S) initiator against MV3 `resources` plus `matches`, or the declared `extension_ids` for another extension; `use_dynamic_url` uses a runtime-scoped opaque host | Same Version 48 policy, independently enforced by Swift/WebKit |
+| Website-visible package resources | Chromium enforces manifest `web_accessible_resources` | Version 100 routes bounded GET/HEAD requests with a valid native HTTP(S) Origin through the active provider, fresh CRX verification, exact signed WAR/dynamic-host/path checks, and native surface/generation leases. Referrer-only and headerless requests remain refused; actual WebView Origin emission is unverified. Public documents are sandboxed raw bytes without private modules or extension APIs. DNR substitutions and dedicated extension pages remain separate paths; this does not prove public iframe/picker compatibility | Historical Version 48 policy, independently enforced by Swift/WebKit; current iOS work is paused |
 | Privileged same-package fetch and XHR | Chromium resolves extension-owned URLs directly | Version 49 permits only `GET`/`HEAD` from an authenticated background or extension page to its stable or current dynamic host, with native package lookup, bounded transfer state, and 404 for a missing path | Same Version 49 policy, independently enforced by Swift/WebKit |
 | Background/page fetch and XHR | Chromium applies its extension network and CSP model | On Android 14/API 34+, Version 48 brokers bounded cookie-free HTTP(S) requests through cache-disabled `android.net.http.HttpEngine` only from an authenticated background or extension page, requiring an effective host permission for every URL and redirect hop; Android 7-13 fail closed for this broker only | Same Version 48 contract over an ephemeral cookie-disabled `URLSession` |
-| Content scripts | Chromium worlds/frames according to supported Electron behavior | Version 46: manifest `all_frames`, `world`, `match_about_blank`, and `match_origin_as_fallback`; isolated declarations use the extension world and `MAIN` declarations use a separate bridge-free page-world source | Same Version 46 manifest subset using distinct `WKContentWorld`/page-world sources |
+| Content scripts | Chromium worlds/frames according to supported Electron behavior | Version 93: signed manifest and dynamic isolated JavaScript runs in a per-extension authenticated AndroidX world with immutable runtime metadata, exact runtime-scoped `use_dynamic_url`, verified-package `i18n.getMessage` / `getUILanguage` / `getAcceptLanguages`, bounded local native `i18n.detectLanguage`, same-extension bidirectional one-shot messaging, content-to-background `runtime.connect()`, incoming `runtime.onConnect` from background/page `tabs.connect()`, and scoped `runtime.lastError`; matching declarative CSS remains separately cleanup-capable. Explicit declarative MAIN JavaScript runs exact verified source in matching page-world frames through browser-built generation gates and receives no extension/native API bridge. Separately approved `userScripts` backgrounds can register/query/update/unregister bounded future-document source, manage bounded world configuration, and opt an exact `USER_SCRIPT` world into authenticated one-shot `runtime.sendMessage()` delivery to the background's dedicated `runtime.onUserScriptMessage` event. Explicit `MAIN` remains capability-free; custom world CSP, user-script Ports, and one-shot execution remain absent. The locale-only isolated projection includes bounded placeholders, `escapeLt`, and predefined extension/locale/bidi messages but no package-text or host authority. Packages with an active background also receive the broker-declared local/device-sync/managed/session storage surface through exact document authority and live native access policy. Content cannot change policy, session defaults trusted-only, and a content-only package receives only background-independent language detection rather than a synthetic background or unrelated broker surface. Direct content requests remain capped at 64 KiB; authenticated result and one-way event transfers use ordered 12 KiB envelopes with 4 MiB per-value and 16 MiB aggregate limits. Exact pre-page-script `document_start`, other content APIs, complete CSP isolation, private execution, and physical-device proof of related/opaque-frame and MAIN child-frame behavior remain unavailable | iOS work is paused; the historical Version 46 WebKit source is not current build/runtime evidence |
 | Background | Chromium extension background/service-worker behavior available through Electron | Version 56 schema v8 serves a reserved PAGE-world generated document: manifest-ordered external classic paths or one private stable-own module import run under validated CSP; trusted initial-document load or complete module evaluation plus exact native load completion releases the generation FIFO | Same shared v8 path-carrier/readiness policy over an exact WKWebView/controller/object/generation; neither host has idle suspend/wake or killed-app parity |
 | `offscreen` | Desktop supports Summer's reviewed Chrome reason set in a sandboxed hidden extension page, including reason-specific audio inactivity | Version 56 exposes only Promise `createDocument`, `closeDocument`, and `hasDocument` to an authenticated current MV3 background or top-level owned page with required `offscreen`; only exact `WORKERS` is accepted. One hidden PAGE document per extension/eight globally gets provisional runtime messaging/Ports and verified package modules/Workers under strict CSP/navigation/network bounds | Same shared V56 API, quotas, restricted runtime, package/CSP policy, and process-only lifecycle over an independently bound WKWebView; final Mac/Xcode and live-iPhone behavior remain pending |
 | `runtime.reload()` | Chromium reloads the calling extension and applies its rapid-reload protection | Version 51 exposes the zero-argument, synchronous-`undefined` method to backgrounds, pages, and authenticated content scripts; native replies before an async target-only restart, clears only memory-session state/queued session changes, recreates owned runtime pages, preserves durable target state and ordinary website tabs, and terminates/suppresses the sixth accepted call in ten seconds | Same Version 51 contract, with a monotonic runtime epoch and exact WKWebView/controller/document revalidation; sibling extensions and ordinary website tabs remain live |
-| `runtime.Port` | Chromium owns Port routing and process/service-worker lifecycle | Version 52 uses a native-owned same-extension registry with opaque non-authority endpoint IDs, OPEN-to-ACTIVATE ordering, per-port FIFO, local-silent/peer-once disconnect, and exact document/epoch/generation teardown on navigation, reload, or renderer loss | Same Version 52 contract, independently enforced by Swift/WKWebView; neither host supports cross-extension Ports, `connectNative()`, idle-worker wake, or killed-app wake |
-| Extension commands | Chromium owns browser-window accelerators and its shortcut-management UI | Version 53 exposes `commands` only when the manifest owns that key; callback/Promise `getAll()` and ready-background `onCommand` use foreground physical keyboard input, `default` shortcuts, Android key normalization, deterministic conflicts, and inactive reserved/global/media/AltGr-shaped shortcuts | Same bounded API over dynamic foreground `UIKeyCommand`; `mac` then `default` resolution maps Command/MacCtrl/Alt to Command/Control/Option, with no OS-global registration and no live-iPhone behavior claim |
+| `runtime.Port` | Chromium owns Port routing and process/service-worker lifecycle | Version 82 reuses the Version 52 native-owned same-extension registry for verified pages, offscreen documents, and authenticated isolated content opening Ports to the exact active background, then adds background/page `tabs.connect()` to exact current content frames. Opaque non-authority endpoint IDs, OPEN-to-ACTIVATE ordering, per-port FIFO, quotas, and exact document/epoch/generation teardown remain enforced. No-selector calls use one virtual sender capability over the selected physical routes: messages fan out, replies converge, and the sender disconnects only after its final receiver | iOS work is paused at the historical Version 52 verified-page/offscreen contract; neither host claims cross-extension Ports, `connectNative()`, idle-worker wake, or killed-app wake |
+| Extension commands | Chromium owns browser-window accelerators and its shortcut-management UI | Version 97 connects verified `default` shortcuts to the current QuickJS engine. Version 98 adds a native touch chooser, including usable unassigned commands, without changing keyboard assignments. Live `getAll()`, exact-background `onCommand`, and reserved click/popup routes retain native tab/document/generation checks. One-shot native selections stay revoked after lifecycle loss, including during deferred popup verification. Browser-reserved/global/media/AltGr keyboard input stays inactive. Remapping UI and physical-device proof remain absent | Historical bounded API over dynamic foreground `UIKeyCommand`; `mac` then `default` resolution maps Command/MacCtrl/Alt to Command/Control/Option, with no OS-global registration. Current iOS work is paused and live behavior is unverified |
 | Compiled wrapper migration | Chromium owns its internal generated bootstrap | Version 56 requires compiled-source schema v8; schema-v7/older or unversioned records remain visible but disabled as load-failed until signed-package reinstall/reparse | Same shared persistent record policy; Swift never receives a pre-v8 source as enabled configuration |
 | Per-document request authority | Chromium owns document/world identity internally | Android establishes a fresh browser-owned token/secret before package source and binds calls to the exact native world, reply proxy, receiver, committed top document, or background generation | Version 51 uses an exact five-field READY envelope and exact four-field `context.request` outer envelope for every direct runtime/storage call; Swift compares its token with the current background, popup, owned page, or verified top document before decoding the inner request |
 | Ordinary child-frame broker | Chromium authenticates eligible content-script frames | Static child injection remains available in the supported Version 46 subset, but Version 51 runtime/storage broker authority is top-frame-only; cross-origin child calls fail closed | Same deliberate top-frame-only ordinary authority while authenticated WebKit child/related-frame lifecycle remains incomplete |
 | Fair work admission | Chromium schedules extension work internally | Global ceilings are paired with per-extension admission caps across scarce work classes; DNR and user-script read transfers allow at most two slots per extension within each eight-slot pool | Matching per-extension-below-global policy for streamed reads, runtime/website proofs, language, network/resource, and other bounded work so one package cannot occupy every slot |
 | Platform info | Chromium reports its native Chrome platform values | `runtime.getPlatformInfo()` reports `android` plus mapped primary ABI | Reports Chrome-valid `mac` plus actual architecture as a documented best-effort Darwin mapping because Chrome has no `ios` enum value |
 | API breadth | Broad Chromium/Electron surface | Explicit Summer subset | Same intended Summer subset, implemented independently in Swift |
-| Request rules | Chromium declarative net request engine | Summer's bounded indexed block subset with persistent static-selection/dynamic updates and memory-only session updates | Summer's bounded `WKContentRuleList` block subset with transactional static-selection/dynamic/session updates |
-| DNR regex capability probe | Chromium compiles supported `regexFilter` expressions through its RE2-backed DNR engine | Version 54 exposes callback/Promise `isRegexSupported()` only in the privileged permission-gated DNR namespace, but every valid-shaped request returns frozen `{isSupported: false, reason: "memoryLimitExceeded"}` without compilation or native IPC; static regex rules are omitted and mutable additions rejected | Same shared fixed-negative wrapper behavior and zero `condition.regexFilter` capacity; this is not an RE2 or native-regex parity claim |
+| Request rules | Chromium declarative net request engine | Summer's bounded indexed request-stage subset with persistent static-selection/dynamic updates and memory-only session updates; verified manifest-exposed package resources may replace non-document GET response bodies while retaining the original URL; Chrome 145 `topDomains` / `excludedTopDomains` use the browser-owned associated top-document URL, fall back to the initiator when absent, and fail closed when both are unknown | Summer's bounded `WKContentRuleList` block subset with transactional static-selection/dynamic/session updates; iOS work is paused and does not advertise the Android top-domain condition |
+| DNR regex capability probe | Chromium compiles supported `regexFilter` expressions through its RE2-backed DNR engine | Current Android compiles case-aware ASCII URL regexes with pinned pure-Java RE2/J under a 2,048-character, 256-instruction, 1,000-active-rule boundary; static/dynamic/session matching, callback/Promise `isRegexSupported()`, and capture-aware first-match substitution share that compiler. Credential-free HTTP(S) substitution results can redirect top-level `GET` navigation; other request classes remain unchanged | iPhone retains the historical fixed-negative wrapper behavior and zero `condition.regexFilter` capacity while iOS work is paused |
 | Blocking `webRequest` | Depends on desktop Electron support | Not implemented | Not implemented |
-| Storage access levels | Chromium keeps persistent per-extension policy for local, sync, and MV3 session; local/sync default untrusted-accessible and session defaults trusted-only | Version 55 exposes `setAccessLevel()` on each manifest-available area, permits mutation only from exact privileged contexts, persists policy across reload/update/disable/restart, checks it for every authenticated top-frame isolated-content operation/event, and uses bounded crash-retryable deletion tombstones so removal clears data/package/permission/policy before same-ID confirmation; one mutation's change envelope is capped at 64 KiB, and a nonempty mutation needing an unready background fails before write if its protected 256-event/1 MiB FIFO cannot reserve capacity | Same Version 55 contract, crash-retryable cleanup, bounds, and atomic backpressure with exact WKWebView/controller/document-token/scope rechecks before operations and asynchronous event calls; page world remains excluded |
-| `storage.local` | Chromium extension storage, content-accessible by default | Native extension-scoped persistent storage, content-accessible by default under persistent access policy | Same independently enforced native policy and persistent values |
-| `storage.sync` | Desktop implementation may later connect to Summer device sync; content-accessible by default | Chrome-shaped device-local namespace today, content-accessible by default under persistent access policy | Same independently enforced native policy and device-local values |
-| `storage.session` | Chromium MV3 behavior, trusted-only by default | MV3 memory-only values; Version 55 allows a privileged context to grant/revoke authenticated isolated-content access without changing value cleanup | Same policy/value separation and exact current-document checks |
-| Tabs and window queries | Chromium uses numeric tab IDs and real browser window types | Tab IDs are opaque UUID strings; Version 47 validates `discarded`, `lastFocusedWindow`, and every valid `windowType` against one normal undiscarded window | Same UUID-string tab IDs and one-normal-window filtering |
-| Extension windows/devtools | Desktop-shaped extension UI is possible | Version 47 supplies read-only `windows.get/getCurrent/getLastFocused/getAll`, constants, optional `populate`, and filtering; no mutations, events, devtools, or fake popups | Same deliberately read-only single-window model |
+| Storage access levels | Chromium keeps persistent per-extension policy for local, sync, and MV3 session; local/sync default untrusted-accessible and session defaults trusted-only | Version 80 reuses the persistent Version 55 native policy: every content operation/event rechecks the exact current document and area access, while `setAccessLevel()` remains privileged-only | iOS work is paused; the historical Version 55 WebKit content route is not current build/runtime evidence |
+| `storage.local` | Chromium extension storage, content-accessible by default | Native extension-scoped persistent storage for backgrounds/pages and authenticated isolated content whose package has an active background; direct content requests remain capped at 64 KiB while authenticated results and events use the bounded 4 MiB transfer path | iOS work is paused; historical persistent values are not a current runtime claim |
+| `storage.sync` | Desktop implementation may later connect to Summer device sync; content-accessible by default | Chrome-shaped device-local namespace for backgrounds/pages and authenticated isolated content; no cross-device transport | iOS work is paused; historical device-local values are not a current runtime claim |
+| `storage.session` | Chromium MV3 behavior, trusted-only by default | MV3 memory-only values for privileged contexts; a privileged policy change can admit authenticated isolated content, and restoring trusted-only immediately blocks later content operations/events | iOS work is paused; historical policy/document checks are not current runtime evidence |
+| Tabs, window queries, language detection, and visible capture | Chromium uses numeric tab IDs, real browser window types, renderer/translate language state, and compositor-backed visible-tab capture | The QuickJS broker maps browser-owned engine IDs to bounded stable numeric IDs within each profile. Version 47 validates `discarded`, `lastFocusedWindow`, and every valid `windowType` against one normal undiscarded window. Version 76 gives an ordinary packaged page its exact `tabs.getCurrent()` owner after browser-tab registration and accepts `undefined` for optional-tab-ID overloads. Version 77 adds authenticated background/page `tabs.sendMessage()` delivery to exact current isolated content frames. Version 86 adds permission-gated JPEG/PNG `tabs.captureVisibleTab()` of the exact active regular System-WebView surface, with completion-time tab/generation/grant checks, two calls per second, one capture in flight, and bounded pixels/result bytes. Version 87 exposes permission-free `tabs.detectLanguage(tabId?)` by sampling at most 8 KiB from the exact completed document and returning only the local Android classifier's normalized primary code or `und`; navigation/surface/generation changes reject | iOS work is paused; the historical UUID-string and single-window implementation is not current build/runtime evidence, and no current iPhone language/capture claim is made |
+| Extension windows/devtools | Desktop-shaped extension UI is possible | Version 47 supplies `windows.get/getCurrent/getLastFocused/getAll`, constants, optional `populate`, and filtering. Version 94 adds one focused regular-profile tab as a session-unique normal/popup logical window through `windows.create()` and focuses it through `windows.update()`. Version 99 resolves current-window queries and `WINDOW_ID_CURRENT` focus from an authenticated packaged tab's owner; last-focused and explicit-ID queries remain global, missing owners fail closed, and unowned visible pages retain foreground fallback. Exact own-extension URL/window-type queries support create/query/focus workflows. The presentation remains Summer's full-screen phone tab; Activity foregrounding, floating geometry, inactive/private/panel/multi-tab creation, existing-tab moves, removal, events, and devtools remain absent | iOS work is paused; its historical deliberately read-only single-window model is not current runtime evidence |
+| `management` | Chromium exposes self and cross-extension management with install-state events and browser-owned mutations | Version 89 supplies permission-free `management.getSelf()` from independently verified localized metadata and current API/explicit-host authority. Content-script-only matches are excluded; cross-extension lookup, enable/disable, uninstall, and events remain absent | iOS work is paused; no current iPhone management-runtime claim is made |
 | File-scheme status | User-manageable desktop grant when reviewed and enabled | Privileged `extension.isAllowedFileSchemeAccess()` reports `false` | Reports `false` |
 | Context menus | Desktop broker supports CRUD/click delivery, but some Chrome semantics remain first-pass | Persistent generic registry; trusted link/image long-press composition; opaque revision-bound clicks | Persistent generic registry; trusted link long-press composition; opaque revision-bound clicks; image/selection remain WebKit-owned |
 | Notifications | Basic desktop broker with extension-scoped create/update/clear/events | Basic OS notifications, two actions, persisted scoped registry, immutable private click/dismiss routing | Basic OS notifications, two actions, persisted scoped registry, WebKit-background click/dismiss routing |
@@ -70,7 +105,7 @@ The central product rule is:
 | Privileged user gesture | Chromium owns transient activation semantics | Version 50 consumes a native five-second monotonic, one-shot grant for `permissions.request` and download `open`/`show`, bound to the exact extension version and WebView document or background generation; the JS Boolean is schema only | Same policy using system uptime and exact WKWebView/controller/page or background-generation binding; queued event delivery cannot restart expiry |
 | Permission popup lifecycle | Chromium owns popup/prompt presentation | The exact popup is suspended while trusted Vue chrome presents the decision, restored only after exact response/source/version/document/foreground checks, or closed by a native 30-second watchdog | Same exact suspension/restoration and 30-second watchdog contract in Swift/WebKit |
 | `scripting` | Chromium `executeScript`/CSS behavior | Version 46: bounded inline or verified packaged files, `frameIds`/`allFrames`, `MAIN`/`ISOLATED` execution, AUTHOR CSS, and per-frame native host checks; Android child IDs are world-local | Same Version 46 API subset over WebKit frame identities; no `documentIds` or USER CSS |
-| Verification status | Existing desktop extension subsystem | Historical V51-V55 focused contracts/builds/device probes remain recorded below. V56 final native/security gates, exact-APK packaged offscreen fixture, and real-extension offscreen behavior are pending; no V56 Android device pass or final security freeze is claimed | Historical V51-V55 source/build evidence remains recorded below. V56 Swift source review is not an Xcode or runtime result; a fresh Mac/Xcode Simulator gate and live-iPhone behavior are pending and not claimed |
+| Verification status | Existing desktop extension subsystem | Version 78 focused source/native gates pass; final full-package/build/APK evidence is recorded in the checkpoint, without an emulator or physical-device execution claim | Historical V51-V55 source/build evidence remains recorded below. Swift source review is not an Xcode or runtime result; a fresh Mac/Xcode Simulator gate and live-iPhone behavior are pending and not claimed |
 
 The 24,963,237-byte Version 50 APK was installed on `Summer_API_36` /
 `emulator-5554`. Direct Capacitor asset synchronization passed. The broader
@@ -280,14 +315,18 @@ live-iPhone V53 behavior is claimed.
 Desktop Chromium owns its installed extension directory and resource loading.
 For a mobile Web Store install, Summer does the following:
 
-1. The native host downloads at most 32 MiB from Google's HTTPS update service.
+1. The native host downloads from Google's HTTPS update service. Android shows
+   size warnings above 32 MiB compressed, 8 MiB per entry or 48 MiB expanded;
+   normal review confirmation accepts them. Separate archive safety ceilings are
+   512 MiB/64 MiB/1 GiB respectively. The paused iPhone path retains 32 MiB.
 2. Trusted shared code verifies the CRX3 developer proof and requested extension
    ID, parses the manifest, reports access, and requires confirmation.
 3. Android or iPhone stores the exact CRX under an extension-scoped SHA-256
    digest.
 4. At native configuration time the host rechecks the digest, CRX3 envelope,
    archive directory, paths, compression, duplicates, encryption, symbolic
-   links, entry/expanded limits, and CRCs.
+   links and entry/expanded limits. Android rechecks each resource CRC when
+   materializing it from the immutable verified archive.
 5. The host exposes verified files only on that extension's private
    `summer-extension://` origin. Localized CSS may replace an existing CSS file;
    it cannot add arbitrary native resources.
@@ -622,10 +661,13 @@ of these Chrome-shaped APIs:
   permission-filtered URL/title metadata and opaque UUID-string IDs; Version 47
   validates `discarded`, `lastFocusedWindow`, and every valid `windowType` and
   filters them against the one normal undiscarded mobile window;
-- read-only `windows.get`, `getCurrent`, `getLastFocused`, and `getAll` with
+- `windows.get`, `getCurrent`, `getLastFocused`, `getAll`, `create`, and focused
+  `update` with
   `WINDOW_ID_NONE`, `WINDOW_ID_CURRENT`, optional bounded `populate`, and valid
-  `windowTypes` filtering over that one real window; mutation methods, events,
-  and fabricated popup windows are absent;
+  `windowTypes` filtering. Android normal/popup logical windows contain one tab
+  on the existing full-screen phone surface; other mutation methods, events,
+  Activity foregrounding, floating/private/inactive/panel/multi-tab windows,
+  and existing-tab moves are absent;
 - privileged `extension.isAllowedFileSchemeAccess()` callback/Promise forms
   reporting `false`;
 - top-frame `webNavigation` queries and core navigation events;
@@ -639,8 +681,9 @@ of these Chrome-shaped APIs:
   permission and does not create a JavaScript namespace;
 - manifest-dependent privileged `commands.getAll()` callback/Promise forms and
   exact-ready-background `commands.onCommand` from foreground native hardware
-  input, with deterministic inactive conflicts/reserved shortcuts and bounded
-  action-alias handling;
+  input or one-shot native touch selection, with deterministic inactive
+  conflicts/reserved shortcuts and bounded action-alias handling; touch choices
+  can invoke usable unassigned commands but never fabricate keyboard bindings;
 - action/browser-action clicks, popups, title, badge, enabled state, and packaged
   path icons, including safe background-entry-relative icon resolution;
 - background-relative `fetch()` and XHR access to verified same-extension
@@ -668,14 +711,24 @@ of these Chrome-shaped APIs:
   package-version changes clear registrations before new extension code runs.
   Version 45 stages batch mutations atomically, applies an aggregate registry
   bound, and rebuilds future-document bindings after permission changes without
-  forcibly reloading ordinary tabs;
+  forcibly reloading ordinary tabs. Android Version 93's active QuickJS path
+  exposes register/query/update/unregister plus bounded world configuration,
+  with dedicated `USER_SCRIPT` world IDs and explicit capability-free `MAIN`.
+  A messaging-enabled user-script world receives authenticated one-shot
+  `runtime.sendMessage()` routed to `runtime.onUserScriptMessage`; custom world
+  CSP and user-script Ports remain absent;
 - a block-only subset of `declarativeNetRequest`, including persistent
   `getEnabledRulesets` and `updateEnabledRulesets` for declared rulesets,
+  persistent per-rule static exceptions through `getDisabledRuleIds()` and
+  `updateStaticRules()` (up to 5,000 IDs, reset on package-version change),
+  current `getAvailableStaticRuleCount()`, recent `getMatchedRules()` feedback,
+  and `setExtensionActionOptions()` action-count controls,
   persistent `getDynamicRules` / `updateDynamicRules`, and memory-only
   `getSessionRules` / `updateSessionRules`. Mutable updates use bounded chunked
   transactions because the authenticated per-message limit remains 64 KiB.
-  Version 54 also supplies a fixed-negative callback/Promise
-  `isRegexSupported()` probe without adding regex-rule enforcement.
+  Android now supplies callback/Promise `isRegexSupported()` plus bounded
+  static/dynamic/session `regexFilter` enforcement through RE2/J. iPhone keeps
+  Version 54's fixed-negative probe while its implementation is paused.
 
 This list describes API shapes, not perfect Chrome semantics. The authoritative
 limits and detailed behavior are in
@@ -685,7 +738,11 @@ Mutable rule lifecycle now follows the important Chrome boundaries: dynamic
 rules survive browser restarts and extension upgrades; session rules are
 memory-only and reset on browser exit or extension update; enabled static
 ruleset choices survive a browser restart but reset to manifest defaults when
-the extension version changes. Android rebuilds its native request index after
+the extension version changes. Android also persists individual disabled static
+rule IDs across restart and resets them on a version change, rebuilding the
+native request index only after the exact packaged ID set validates. iPhone
+does not yet expose this per-rule surface while its implementation is paused.
+Android rebuilds its native request index after
 an accepted transaction. iPhone compiles the complete candidate WebKit list
 before it persists or swaps any live state.
 
@@ -710,20 +767,28 @@ The largest differences from desktop Chrome-style behavior are:
 - static related-frame matching for `about:blank`, `about:srcdoc`, `data:`,
   `blob:`, and `filesystem:` is best-effort and fails closed when WebView/WebKit
   cannot expose a trustworthy parent, opener, or referrer;
-- `userScripts` supports arbitrary registered code in `USER_SCRIPT` worlds,
-  including optional child-frame injection, but not Chrome's `MAIN` world,
-  custom world CSP, custom messaging, `execute()`, or broader host-pattern
-  coverage than the extension currently owns;
+- Android Version 93 `userScripts` supports arbitrary bounded registered code in
+  `USER_SCRIPT` worlds or explicit capability-free `MAIN`, including optional
+  child-frame injection. Exact USER_SCRIPT world configuration can enable
+  authenticated one-shot messaging to `runtime.onUserScriptMessage`, but custom
+  world CSP, user-script Ports, `execute()`, or broader host-pattern coverage
+  than the extension currently owns remain absent. The paused iOS compatibility
+  path does not support MAIN;
 - no blocking `webRequest`, request-event stream, or arbitrary native proxy;
-- no DNR redirect, allow-priority, header mutation, feedback, regex filters, or
-  mutable actions/conditions beyond the documented safe block subset; Version
-  54's `isRegexSupported()` method truthfully reports the zero regex capacity;
+- no subframe/subresource URL-transform or regex-substitution application,
+  non-HTML/non-web-accessible package-document redirect, or header mutation;
+  Android has bounded verified
+  package-resource responses plus credential-free top-level `GET` direct URL,
+  component, regex-substitution, and authorized packaged-HTML redirects through
+  its existing WebView navigation and extension-page paths;
+  Android URL-regex matching is bounded to the documented RE2/J subset, while
+  iPhone still reports zero regex capacity;
 - no image/list/progress notification templates and no automatic permission
   prompt from extension code;
-- no extension window creation, update, removal, or events, no fake popup
-  windows, and no side panels, devtools, bookmarks, history, cookies,
+- no floating/private/inactive/panel/multi-tab extension windows, existing-tab
+  moves, removal, or window events, and no side panels, devtools, bookmarks, history, cookies,
   identity, native messaging, VPN, or filesystem API surface; the implemented
-  `windows` namespace is read-only and exposes only Summer's one normal window;
+  `windows` namespace exposes phone-backed one-tab normal/popup logical windows;
 - the mobile downloads API has no cookie inheritance, absolute path, nested
   filename, `saveAs`, custom method/body/headers, pause/resume, icon, danger
   acceptance, file deletion, `onDeterminingFilename`, or full query support;

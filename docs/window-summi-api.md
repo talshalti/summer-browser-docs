@@ -98,7 +98,11 @@ interface SummiAgentToolProviderDefinition {
     inputSchema: Record<string, unknown>;
     risk: "read" | "navigate" | "write" | "sensitive";
   }>;
-  invoke(toolId: string, input: Record<string, unknown>):
+  invoke(
+    toolId: string,
+    input: Record<string, unknown>,
+    options?: Readonly<{signal: AbortSignal}>,
+  ):
     Promise<{message: string; data?: unknown}> | {message: string; data?: unknown};
 }
 
@@ -137,8 +141,9 @@ const registration = await window.summi?.agentTools.provide({
     },
     risk: "write"
   }],
-  async invoke(toolId, input) {
+  async invoke(toolId, input, options) {
     if (toolId !== "draft") throw new Error("Unknown tool");
+    if (options?.signal.aborted) throw new DOMException("Cancelled", "AbortError");
     // Validate input again, then use this website's existing application code.
     return {message: `Created draft: ${String(input.subject)}`};
   }
@@ -168,10 +173,12 @@ declaring a low risk: every webpage-provided descriptor is treated as
 `sensitive` at the trusted boundary. The user's AI Services agent policy decides
 whether sensitive actions run without another prompt, ask first, or are blocked.
 When Summer asks, the native dialog reports the browser-owned exact website
-origin and location of the tab. Provider calls time out after ten seconds;
-timeout stops waiting but cannot cancel JavaScript that has already started in
-the provider document, so the outcome is reported as unknown and is not
-automatically retried.
+origin and location of the tab. When Summer cancels an invocation, the
+callback's optional `options.signal` aborts so cooperative provider work can
+stop. Provider calls time out after ten seconds; a timeout still only stops
+waiting and cannot cancel JavaScript that has already started in the provider
+document, so the outcome is reported as unknown and is not automatically
+retried.
 
 ## Consent behavior
 

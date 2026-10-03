@@ -60,6 +60,28 @@ required, but changing identity fields safely requires an explicit migration
 because app IDs currently anchor routes, settings, secrets, widgets, and
 replacement behavior.
 
+`name` is also the required compatibility fallback for the app's display name.
+An app may provide translated names with `localizations`, keyed by BCP 47
+language tags:
+
+```json
+{
+  "name": "Review Example",
+  "localizations": {
+    "he": {"name": "דוגמת סקירה"},
+    "ar": {"name": "مثال للمراجعة"}
+  }
+}
+```
+
+Summer resolves the exact active locale, then its base language, then `name`.
+Older hosts that do not use `localizations` continue to show `name`, so it must
+remain meaningful and must not be removed. Localized names affect display only:
+do not translate or change `id`, which remains the stable authority for routes,
+settings, permissions, stored data, updates, and uninstall. Reviewers should
+check each submitted translation and may ask for unreviewed or misleading
+entries to be removed.
+
 Manifest roles describe how Summer should host and present an app, and
 communicate that role to the user. They are not permission boundaries. Most
 legacy manifest permissions remain disclosures because installed app modules
@@ -93,6 +115,10 @@ review-example/
 ```json
 {
   "name": "Review Example",
+  "localizations": {
+    "he": {"name": "דוגמת סקירה"},
+    "ar": {"name": "مثال للمراجعة"}
+  },
   "id": "review-example",
   "main": "./main.mjs",
   "version": "0.1.0",

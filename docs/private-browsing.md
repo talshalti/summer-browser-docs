@@ -6,6 +6,61 @@ cookies, cache, history, session, downloads list, preserved tabs, saved
 passwords, autofill profiles, or credit cards are merged into that profile. It
 is a separate disposable runtime surface, not another durable user profile.
 
+On phones, private tabs live alongside regular tabs in the mobile tab switcher.
+They follow the same privacy outcome through platform-native isolation rather
+than an Electron window.
+
+## Mobile private tabs
+
+- **New private tab** is available from the phone navigator and Tabs library.
+  The active private tab carries a persistent private badge and distinct chrome
+  treatment so it cannot be mistaken for a regular tab.
+- Private URLs, titles, active state, and back/forward trails never enter the
+  logical mobile tab session. Relaunch restores only regular tabs. Closing the
+  final private tab returns to a regular survivor, or creates a new regular
+  blank tab when none remains.
+- Popups and explicit open-in-new-tab actions inherit the source tab's mode.
+  Operating-system deep links always open in regular browsing so an external
+  application cannot silently enter or disclose a private lifetime.
+- iOS private tabs share one `WKWebsiteDataStore.nonPersistent()` store for the
+  current private lifetime. It is released after the last private tab closes.
+- Android private tabs require the installed WebView provider's AndroidX
+  `MULTI_PROFILE` capability. Summer assigns a randomly named profile before
+  configuring or navigating each private WebView, shares it among live private
+  tabs, destroys the views before deleting the profile, and never reuses that
+  profile name. Private creation fails closed when the provider cannot supply
+  this boundary; clearing the regular cookie store is never used as a fallback.
+- The initial mobile policy disables extensions, remembered website permission
+  decisions, and website notifications in private tabs. Android private tabs can
+  export HTTP(S) downloads to a document explicitly selected in the system picker.
+  The transfer uses that private WebView profile's cookies, keeps no Summer
+  download record or notification, and stops when the tab closes. Redirects
+  stay on the exact scheme, host, and port, so private cookies never follow a
+  cross-origin redirect. The complete response is held in bounded private
+  memory before Summer writes to the selected document; a failed network
+  transfer cannot leave a partial file. Same-document `blob:` and bounded
+  `data:` downloads use the same document picker and private export path,
+  with the live page identity checked before every generated chunk. These
+  exports run one at a time and are limited to the lesser of 64 MiB or one eighth
+  of the device's Java heap (with an 8 MiB floor). Queued exports are deleted
+  if the tab or browser closes before they start. The user-selected file remains outside Summer's
+  private profile after the private session ends. Android
+  keeps OS autofill disabled for private views, but lets a user explicitly fill
+  an existing Summer-vault password after device authentication. Private form
+  submissions never offer to save or update the durable vault. iOS keeps website
+  data in the non-persistent store, but public WebKit API does not let Summer promise that
+  the operating system will never offer its own credential UI. Bookmarks and
+  durable Summer App/provider actions are not created from a private page. These
+  restrictions avoid routing private activity into stores that do not yet have
+  a separately reviewed private lifetime.
+
+Native source and contract tests verify these boundaries, but they do not prove
+an installed WebView or WebKit runtime. Release acceptance still requires live
+Android and iOS tests showing that regular data is invisible in private tabs,
+live private tabs share only their disposable store, a later private lifetime is
+empty, renderer replacement stays private, and process termination never
+restores a private URL.
+
 ## Opening and closing
 
 - **Keyboard shortcut `Cmd+Shift+N`** (macOS) / `Ctrl+Shift+N` (other
@@ -17,6 +72,8 @@ is a separate disposable runtime surface, not another durable user profile.
 - The window title uses `app.window.incognitoTitle`, and the tab strip shows the
   `tabs.incognito.badge` eye-slash indicator. The profile switcher is hidden so a
   private session can never be confused with a profile.
+- Closing the final private tab immediately opens and focuses a fresh private
+  new tab, so the private window remains usable without crossing session bounds.
 - Closing the window disposes its notification host and calls
   `tabs.closeAllForWindow(baseWindow)`; kept-tab persistence is skipped because
   the session must leave nothing behind.
@@ -42,6 +99,12 @@ is a separate disposable runtime surface, not another durable user profile.
   download session listener are registered on the incognito session too, so
   Summer App pages work identically but remain isolated from the regular
   profile and are included in private-lifetime cleanup.
+- Allowed Chrome extensions use private-session workers, cookies, ephemeral
+  `storage.session`, private-window tab operations, declarative network rules,
+  and toolbar action state. Private tab queries and events observe only private
+  windows. Summer's API relay rejects `storage.sync`, managed storage, and other
+  private calls to brokers that still own durable regular-profile data instead
+  of silently routing those calls through the regular session.
 - Permission decisions (`setPermissionCheckHandler` /
   `setPermissionRequestHandler`) run through the same
   `PermissionsRuntime` with `persistAllowed = false`; allow/deny choices are
@@ -50,12 +113,22 @@ is a separate disposable runtime surface, not another durable user profile.
 
 ## What incognito never touches
 
+- Widgets: private windows do not restore saved widgets or offer browser-owned
+  or Summer App widgets. Explicit opens and app host-open commands are blocked,
+  including Carver previews and sandboxed widget frames. The renderer waits for
+  the window context before reading widget layout storage, so opening a private
+  window cannot migrate or overwrite the regular layout. Ordinary browser
+  accessibility controls remain available independently of widget surfaces.
 - Saved passwords, autofill profiles, and credit cards: IPC handlers in
   `passwordmanager.ts`, `autofill.ts`, and `creditCardManager.ts` return empty or
   reject before reading or writing when `isIncognitoWebContents` matches.
 - Tab preservation (`tabpreservation.ts`): incognito tabs are never preserved,
   restored, or auto-restored; the preserved-tabs index and renderer update are
   always sent to the primary window's chrome.
+- Whole-process crash recovery (`crashSessionRecovery.ts`) snapshots only the
+  portable regular-tab projection. Incognito URLs, titles, active-tab state,
+  and navigation history never enter `CrashSessionState.json` and are never
+  offered after relaunch.
 - Session restore (`sessionrestore.ts`), visit order (`tabOrder.ts`), and the
   tab restore service (`tabrestoreservice.ts`) skip incognito windows and tabs,
   so private activity can never appear after a restart.
@@ -83,7 +156,9 @@ than moving its destination into the persistent session.
 - Extension access is disabled separately for every extension by default. A
   user can opt one in from Extensions Manager. Allowed extensions are loaded
   into the isolated private session, not the regular session's storage. Summer
-  refuses extensions whose manifest declares `"incognito": "not_allowed"` and
+  refreshes already-open matching private pages when access is granted, and
+  routes toolbar actions and extension popups through that same private session.
+  Summer refuses extensions whose manifest declares `"incognito": "not_allowed"` and
   reports that its private host always uses split, isolated execution.
 - Native popups opened by private pages close with their opener, ensuring no
   unleased popup can retain the private session after its owning window closes.

@@ -2,15 +2,21 @@
 
 Status: working engineering guide for the [desktop-to-mobile strategy](desktop-to-mobile-strategy.md)
 
-> **Version 57 WebExtension status:** generic signed-package management remains
-> implemented, but downloaded code executes only after native proves engine
-> ownership, isolated-world CSP, and package-format support. Android WebView and
-> iOS 15–18.3 fail closed with `unsupported-engine`; iOS 18.4+ native
-> `WKWebExtension` integration is in progress. Android execution is blocked by
-> the current no-emulation/no-alternate-engine constraint.
+> **Current WebExtension status:** generic signed-package management remains
+> implemented. Android keeps website tabs on System WebView and uses an isolated
+> standalone QuickJS service only for compatible MV3 background JavaScript.
+> Native request-stage DNR, resource-free declarative CSS, and signed manifest/
+> dynamic isolated content JavaScript are independently capability-gated. The
+> content surface exposes only narrow same-extension runtime messaging;
+> explicit declarative MAIN and the approved register/query/update/unregister,
+> world-configuration, and opt-in one-shot-messaging `userScripts` subset are
+> separately gated. Exact pre-page-script `document_start`, complete content
+> APIs/CSP isolation, and private execution still fail closed. iOS work is
+> paused. QuickJS is not a renderer, and a Chromium, Gecko, or other replacement
+> browser stack is out of scope.
 > All older mobile WebExtension capability rows are historical unless an
 > engine-backed device gate proves them. See
-> [the engine migration plan](mobile-web-extension-engine-migration.md).
+> [the Android QuickJS runtime plan](android-quickjs-extension-runtime.md).
 Last implementation audit: 2026-08-13
 Audience: Tal, Codex, app authors, and future maintainers
 
@@ -160,7 +166,7 @@ contains unrelated capabilities, split it.
 ### Pattern A: share pure behavior
 
 Before this foundation, desktop and mobile implemented the same suggestion policy
-separately. The foundation moves the real Fuse configuration, exact quick-key
+separately. The foundation moves the real Fuse configuration, exact alias
 matching, group ordering, and app-visibility policy into `browser-core`, with
 fixtures that lock the shared answers and a desktop adapter regression test.
 
@@ -181,7 +187,7 @@ export function filterAddressSuggestions<T>(
   query: string,
 ): AddressSuggestionDocument<T>[];
 
-export function findExactAddressSuggestionQuickkey<T>(
+export function findExactAddressSuggestionAlias<T>(
   suggestions: readonly AddressSuggestionDocument<T>[],
   query: string,
 ): AddressSuggestionDocument<T> | null;
@@ -265,7 +271,7 @@ destroyed/recreated host from being accepted by the current host.
 | --- | --- | --- | --- | --- |
 | Address input and URL safety | One `browser-core` resolver now drives mobile and both desktop address submission paths, canonicalizing HTTP(S), upgrading validated host-like input, selecting portable search URLs, and rejecting credentials, malformed hosts, and unsupported schemes | Keep host-specific search-provider execution outside the resolver; add any future navigable scheme only through an explicit validated host adapter | A/B | Foundation |
 | Tabs and navigation | Native vertical slice, native Android/iOS generation/sequence envelopes, runtime validation, shared stale-event reducer, and an observational Electron adapter over the same snapshot contract implemented | Retain packaged lifecycle and desktop adapter evidence as adapters evolve | B/C | Daily MVP |
-| Tab restoration and kept tabs | Versioned logical session, shared verified primary/recovery persistence with bounded corrupt-byte quarantine, host-configurable bounds, independent per-tab failure isolation, kept-tab state, Android/iOS termination/relaunch evidence, and a desktop logical-session adapter that leaves Electron navigation-stack persistence intact implemented | Keep packaged lifecycle and lossless desktop-adapter evidence current as adapters evolve | B/C | Daily MVP |
+| Tab restoration and kept tabs | Versioned logical session, shared verified primary/recovery persistence with bounded corrupt-byte quarantine, host-configurable bounds, independent per-tab failure isolation, kept-tab state, and bounded URL-only back/forward trails restored by Android/iOS without replaying pages or persisting engine blobs; the desktop logical-session adapter still leaves Electron navigation-stack persistence intact | Keep packaged lifecycle and lossless desktop-adapter evidence current; refresh Android/iOS termination-relaunch evidence for the back/forward trail | B/C | Daily MVP |
 | Address suggestions | Shared `browser-core` document projection and matcher plus shared SDK provider timeout, cancellation, validation, ordering, and refresh orchestration consumed by desktop and mobile | Keep host presentation, destination validation, and trusted-only desktop exclusivity behind adapters as providers evolve | B | Foundation |
 | Bookmarks | Shared versioned repository, verified dual-copy writes and corruption recovery, bounded corrupt-byte quarantine, verified legacy migration, CRUD/suggestions, explicit HTML import/export, cross-host selection and duplicate/failure accounting, configurable host bounds, and a lossless desktop adapter that preserves metadata/artwork while projecting portable fields implemented | Keep host-specific persistence and desktop-only fields behind their adapters as the portable schema evolves | B/C | Daily MVP |
 | History | Intentionally excluded from mobile | Do not add a History tab, persist visits, or feed history suggestions; session URLs exist only to restore open tabs | D | Excluded |
@@ -276,11 +282,12 @@ destroyed/recreated host from being accepted by the current host.
 | Downloads | Shared `browser-core` snapshot validation, strict declared-field projection, recovery-candidate derivation, verified dual-copy durable repository, bounded corrupt-byte quarantine, and process-loss reconciliation drive the mobile TypeScript and Capacitor boundaries; bounded Android/iOS adapters, trusted Downloads UI, native completed-file system presentation by opaque ID, packaged Android/iOS presentation/cancellation/failure/restart evidence, Android `DownloadManager` job reattachment, and iOS background `URLSession` recovery for eligible HTTPS/local-network GET transfers are implemented | Keep both simulator flows current, keep native transfer execution, content locations, and opaque recovery tokens host-owned, prove iOS background delivery on signed physical devices, and retain explicit interruption for public-cleartext or non-GET `WKDownload` fallbacks rather than replaying unsafe requests | B/C/D | Public preview |
 | File uploads and pickers | Android document picker and iOS WebKit/user document-picker flows implemented without exposing paths to Vue; packaged Android/iOS cancellation and two-file selection prove OS-picker return delivery into the website | Complete signed-device platform-version coverage | C | Public preview |
 | Site permissions | Shared `browser-core` exact-origin validation, camera/microphone/notification decision aggregation, OS-versus-site interpretation, and a host-keyed versioned repository now drive mobile; desktop consumes the same URL/origin validator while preserving its existing hostname-keyed store; Settings revocation, Android OS-grant and remembered-allow capture, packaged Android/iOS deny/restart/reset, and OS-versus-site denial evidence pass | Add signed physical-device allow evidence on both platforms | B/C | Public preview |
-| Passwords and autofill | Platform-managed WebView/WKWebView Autofill is the supported baseline; a canonical non-secret Settings status is implemented and no Summer vault exists | Prove signed physical-device behavior and design any Summer vault separately | B/C | Public preview gate |
+| Passwords and autofill | Platform-managed WebView/WKWebView Autofill remains available; Android also has a native phone-local vault, bounded Settings entry, and browser-owned website fill/save. iOS retains its platform-managed password path. Password sync is not implemented | Complete Android physical-device and encrypted-recovery checks for the [phone-local password manager](mobile-password-manager-design.md); defer iOS vault work until native validation is available | B/C | Public preview gate |
 | Credit cards | Platform-managed browser-engine Autofill is the supported baseline; card data never enters Vue and the UI labels support unverified | Prove signed physical-device behavior before advertising support | B/C | Public preview gate |
+| Web payments | Ordinary Android website tabs enable WebView's feature-gated Payment Request API and declare only the three Chromium payment-app query intents required for Google Pay; payment credentials and results remain between the website, WebView, and payment app, while Summer Apps, extension views, Vue, and Capacitor receive no payment bridge | Complete Google Pay integration publication and signed physical-device checkout evidence before advertising support; iOS payment support remains a separate platform workstream | C | Public preview gate |
 | WebAuthn and passkeys | Non-secret capability status is implemented; Android browser-mode/provider approval and Apple managed-browser entitlement remain external gates | Implement and verify engine-owned behavior only after entitlements/provider policy are available | C | Public preview gate |
 | Browser profiles | Not implemented | Explicitly outside the current blueprint | D | Deferred |
-| Private browsing | Not implemented | Explicitly outside the current blueprint | D | Deferred |
+| Private browsing | Native private tabs with regular-session exclusion implemented in the mobile contract and phone UI; iOS uses a shared non-persistent website-data store, while Android requires the installed WebView provider's separate-profile capability and fails closed when it is unavailable | Keep private tabs out of restore, regular suggestions, extensions, remembered permissions, notifications, and downloads; disable Android WebView autofill; add signed-device isolation and process-kill evidence on both platforms | B/C/D | Public preview gate |
 | Summer App suggestions | Captain Word plus shared SDK provider execution implemented in both hosts; invalid providers, failures, timeouts, and stale requests are isolated, and matching packaged Android/iOS flows prove the provider row without History | Keep both packaged flows current, keep app-author `suggest(state)` portable, and retain cross-host orchestration fixtures as the contract evolves | A/B | Foundation-Daily MVP |
 | Summer App pages | One reviewed manifest and TypeScript module supplies the Summer App Guide page, settings, and structured widget on Android/iOS; the same packaged Android/iOS flow changes its manifest-defined setting, proves the value in the responsive sandboxed page, reopens it through the structured widget, and confirms no History surface | Keep the same app entry and contract, add only responsive content in reviewed sandboxed pages, and retain matching packaged evidence on both hosts | B/C | Public preview-App parity |
 | Summer App settings | The public `@summer/app-sdk/settings` entry now owns definition normalization, value/patch validation, defaults, text, and visibility policy; public manifest validation, desktop, and mobile consume it, so conformance reports the same field path either host rejects. Versioned ordinary settings, protected secret fields, live updates, reset, corrupt backup, and phone UI are implemented; Android uses Keystore AES-GCM, iOS uses a device-only non-synchronizing Keychain service, host snapshots expose only `configuredSecrets`, and matching Android/iOS packaged smoke proves save/restart/reset with no History; Android additionally audits logs for secret or Capacitor payload leakage | Keep both packaged flows current, and retain OS-vault separation and sanitized snapshots as the capability evolves | A/B/C | Apps parity |
@@ -291,8 +298,8 @@ destroyed/recreated host from being accepted by the current host.
 | Browser imports/exports | Explicit user-selected Netscape bookmark HTML preview/import plus shared selection, duplicate/failure accounting, public-HTTP upgrade with loopback preservation, escaped serialization, and bounded native export implemented; one shared disposable fixture and flow provide focused packaged Android/iOS evidence for native picker delivery, explicit selection, 2/1/0 accounting, saved-row filtering, and fixture cleanup from the Bookmarks surface | Keep both packaged flows current; add other formats only as separate reviewed parsers/serializers | B/C | Apps parity |
 | Find in page | One shared TypeScript policy validates bounded search/next/previous intents; mobile binds commands to the active tab, Android/iOS revalidate and translate them to engine calls, desktop validates renderer IPC and clipboard seeds through the same policy, and matching packaged Android/iOS flows prove success and no-match states | Keep both packaged flows current; add engine-error coverage only where the native engines expose deterministic hooks | B/C | Public preview |
 | Media controls | Now Playing uses the same sandboxed HTML renderer on desktop and mobile, with bounded shared state/actions, revision-safe Android/iOS engine adapters, opaque app handles, browser-owned playback evidence, app-owned update cadence, `autoShow`/`alwaysOn` visibility, compact/expanded transitions, and durable per-session dismissal | Add richer metadata or source focusing only through separately bounded fields; never expose URLs, origins, native tab IDs, DOM access, or the Capacitor bridge | B/C | Apps parity |
-| Context menus | Shared `browser-core` policy validates/canonicalizes HTTP(S) targets and enforces active-tab/revision-bound action eligibility; mobile uses it for open, new tab, native copy, and native share, while desktop uses the same target validation for Electron's open-in-new-tab action. Android unlinked images use the stale-safe mobile policy, iOS preserves WebKit's system image menu, and text selection remains engine-owned | Add richer image actions only through separately bounded contracts; keep native/Electron presentation host-owned and website scripts, selection text, and DOM access out of the trusted bridge | B/C/D | Apps parity |
-| Popups and new windows | Native engines detect user gestures and forward only bounded raw routes; one shared `browser-core` policy requires the gesture, a still-live source tab, and a canonical credential-free HTTP(S) destination before opening an ordinary isolated tab. Privileged popup views are denied, and matching packaged Android/iOS popup-to-tab evidence passes | Keep both packaged flows current; expand only through the shared validated open-in-tab policy | B/C | Public preview |
+| Context menus | Shared `browser-core` policy validates/canonicalizes HTTP(S) targets and enforces active-tab/revision-bound action eligibility; mobile uses it for open, new tab, native copy, and native share, while desktop uses the same target validation for Electron's open-in-new-tab action. Android image long presses also offer Save image through a short-lived native request tied to the active regular tab and existing Downloads pipeline, including images inside links when WebView reports their source. iOS preserves WebKit's system image menu, and text selection remains engine-owned | Keep native/Electron presentation host-owned and website scripts, selection text, and DOM access out of the trusted bridge; verify Android image saving on a device | B/C/D | Apps parity |
+| Popups and new windows | Android preserves the exact user-gesture-created System WebView as a browser-owned child tab, so POST navigation, redirects, `window.opener`, `postMessage`, and `window.close()` retain engine semantics. Shared TypeScript reclassifies each current URL: common HTTPS authentication routes use a rounded near-full-screen sheet, while ordinary `target=_blank` destinations remain normal tabs and insecure/unrelated redirects immediately lose authentication presentation. The animated lock appears only beside the validated current HTTPS hostname. Native authenticates and snapshots exact opener ancestry/presentation for renderer reconnection, keeps the opener visible but interaction-inert during the sheet, and restores its prior state during teardown. Shared TypeScript returns to a still-live same-profile opener without stealing focus after a later tab switch. A packaged OAuth-style emulator flow proves callback messaging, close, return, and continued opener interaction. iOS retains the narrower bounded-route popup-to-tab path | Keep the Android OAuth-style and ordinary-popup flows current; add equivalent iOS child-context and presentation behavior when Mac testing resumes | B/C | Public preview |
 | Notifications | Three bounded classes are implemented: generic opt-in download completion; declared Summer App status alerts with per-app authorization; and foreground-only website notifications for the active top-level exact origin after a page gesture and browser-owned site decision. Android/iOS revalidate at the native boundary, while website alerts accept only bounded title/body text and browser-owned origin provenance; matching packaged flows pass on both simulators | Keep both simulator flows current; keep web push, background delivery, actions, remote artwork, sensitive context, website URLs, and generic native options outside this slice | B/C | Public preview |
 | Sharing | Shared TypeScript policy authorizes only an active credential-free HTTP(S) tab, then Android/iOS revalidate that the same tab and canonical URL are still active before opening their system share sheets; matching packaged Android/iOS cancellation and accessibility flows pass | Keep both packaged flows current | B/C | Public preview |
 | Deep links | One shared `browser-core` gate parses direct HTTP(S) and exact `summer://open` routes, canonicalizes destinations, rejects unsafe/malformed input, and suppresses equivalent duplicate deliveries. Android/iOS forward only bounded raw routes; matching packaged Android/iOS flows prove cold launch, disposable blank-tab reuse, warm delivery, duplicate suppression, and invalid-route rejection | Keep release association metadata and both packaged flows current | B/C | Public preview |
@@ -317,11 +324,16 @@ A persisted tab record should include only stable logical data such as:
 - normalized URL;
 - last known title and selected state;
 - kept/pinned state if supported;
-- logical ordering; and
-- optional safe UI metadata.
+- logical ordering;
+- optional safe UI metadata; and
+- a bounded URL/title-only back/forward trail plus its selected index.
 
-Do not persist native view handles, process IDs, raw history objects, or bridge
-callbacks in the portable record. Desktop still stores Electron
+Do not persist native view handles, process IDs, raw history objects, page
+content, request bodies, form values, scroll state, or bridge callbacks in the
+portable record. Mobile validates and stores only the open tab's bounded
+credential-free HTTP(S) trail. Each native host loads only the selected URL and
+holds the remaining entries as synthetic back/forward tails; it never replays
+the trail. Desktop still stores Electron
 `RestoreOptions` privately so kept tabs retain their native navigation stack.
 Its separate logical-session adapter projects ordered tab IDs, validated
 current URLs/titles, active state, and kept state through the shared contract.
@@ -337,7 +349,7 @@ from overwriting newer state after close, restore, or process recreation.
 ### Suggestions
 
 Desktop and mobile now share suggestions at two deliberate boundaries. The
-private `browser-core` matcher owns fuzzy matching, exact quick-key weighting,
+private `browser-core` matcher owns fuzzy matching, exact alias weighting,
 group ordering, and app visibility for tab, bookmark, app, and provided rows.
 The public SDK runner owns independent parallel provider execution, declaration
 order, bounded timeouts, stale-query cancellation, output validation, failure
@@ -356,16 +368,17 @@ interfaces such as `listBookmarks`, `upsertBookmark`, and `removeBookmark` over
 exposing generic key-value access.
 
 Mobile history is intentionally absent. Do not add a History tab, store visit
-records in the background, or add history-derived suggestions. Persisting the
-validated URL of an open logical tab for crash/session restoration is session
-state, not browsing history.
+records independently of their open tab, or add history-derived suggestions.
+Persisting a bounded URL-only trail for an open logical tab's crash/session and
+back/forward restoration is session state, not browsing history; closing that
+tab removes the trail.
 
 The legacy mobile bookmark copy is a migration seed. The shared repository now
 writes and reads back the versioned replacement before removing that legacy
 value, and retains a recoverable failure path.
 
 Desktop keeps its existing bookmark store. Its adapter validates and projects
-only the portable ID, name, HTTP(S) URL, quick keys, tags, and managed source.
+only the portable ID, name, HTTP(S) URL, aliases, tags, and managed source.
 Portable writes are read back for verification and merge into the existing
 record, preserving desktop metadata, artwork, and unknown desktop-only fields.
 Validation limits are host-configurable, so mobile bounds are not imposed on
@@ -451,21 +464,45 @@ isolated native website view and the operating system; the Capacitor adapter
 returns only canonical capability states. Logs and errors contain no origin,
 account, provider, credential ID, password, assertion, or card data.
 
-Cross-device credential synchronization is outside the current blueprint. If it is
-reconsidered later, it requires a separate design for end-to-end encryption,
-device enrollment, recovery, revocation, export, and data loss.
+The approved [phone-local password manager](mobile-password-manager-design.md)
+has an Android native vault and browser-owned website fill/save implementation;
+physical-device verification remains pending. iOS retains platform-managed
+password behavior. Phone-to-phone and phone-to-PC synchronization over Mesh is a
+later phase requiring a separate design for end-to-end encryption, explicit
+device enrollment, recovery, revocation, conflict and deletion semantics, and
+data loss. The current implementation has no password sync.
 
-### Deferred: profiles and private browsing
+Android web payments follow the same platform-owned boundary. Summer enables
+Payment Request only on ordinary website WebViews when the installed provider
+advertises support and grants package visibility only for the required payment
+app intents. The website and Android payment app own checkout data and results;
+Summer does not add a JavaScript interface, copy payment payloads into trusted
+state, or enable the API in Summer App or extension WebViews. Google Pay remains
+release-gated until the app integration is published with Google and a signed
+physical-device checkout succeeds.
 
-Multiple profiles and private browsing are explicitly outside the current mobile
-blueprint. They should not add work to the MVP or Public preview acceptance gates.
+### Browser profiles and private browsing
 
-Current repository and host contracts should still avoid unnecessary global
-singletons or irreversible assumptions that would make future isolation
-impossible. This is architectural hygiene, not a commitment to implement either
-feature. If they return to scope, they need a separate design for tab restore,
-suggestions, downloads, credentials, Summer Apps, crash recovery, and
-platform website-data isolation.
+Multiple durable browser profiles remain outside the mobile blueprint. Private
+browsing is a separate disposable runtime surface, not a durable profile.
+
+Mobile private tabs are marked by the native host and are deliberately absent
+from logical tab restoration, regular-tab suggestions, app/provider state, and
+durable browser-owned activity. iOS private tabs share one non-persistent
+`WKWebsiteDataStore` for the current private lifetime. Android private tabs share
+one randomly named AndroidX WebKit profile only when the installed WebView
+provider advertises `MULTI_PROFILE`; unsupported providers reject private-tab
+creation instead of clearing or reusing regular website data. The profile name
+is never reused after the last private tab closes.
+
+The first mobile slice disables extension access, remembered website
+permissions, website notifications, and downloads in private tabs. Android also
+disables WebView autofill for private views. The iOS non-persistent store keeps
+website data out of Summer's regular store, but Summer cannot disable every
+system credential prompt through public WebKit API. Closing the final private
+tab returns to a regular survivor or a new regular blank tab. Physical-device
+acceptance still needs to prove live cookie, cache, DOM-storage, service-worker,
+crash-replacement, and process-kill isolation on both platforms.
 
 ### Find, media, menus, and popups
 
@@ -488,8 +525,17 @@ its Electron menu but routes open-in-new-tab targets through the same validator.
 
 Android reports an unlinked image through a separate event containing only a
 validated HTTP(S) image address plus the active tab ID and revision. The trusted
-Vue sheet can open, open in a new tab, copy, or share that address, and becomes
-inert as soon as its originating navigation is stale. iOS WebKit does not expose
+Vue sheet can open, open in a new tab, copy, or share that address, or save the
+image through a short-lived native request and the regular-tab Downloads flow.
+For a linked image, WebView's hit test supplies the image URL resolved in the
+touched frame; the focus-node callback supplies the separate link URL. The link
+menu can offer the same Save image action. These requests become inert when the
+tab changes; private-tab downloads remain unavailable. Both targets must be
+absolute HTTP(S) URLs. A relative focus-node source alone is not resolved
+against the top-level page because it may belong to a child frame. The transfer
+accepts supported image response types and verifies the downloaded image bytes
+before publishing with a matching extension. Generated sources remain
+unavailable for this action. iOS WebKit does not expose
 an image URL through its public context-menu element contract, so Summer leaves
 the system image menu intact for sharing, saving, and copying rather than
 injecting a website script or message bridge.
@@ -500,14 +546,31 @@ contract. Any future app-visible selection feature requires its own bounded
 payload, origin policy, and privacy review rather than expanding either link or
 image events.
 
-Popup handling is a security boundary. Android and iOS keep gesture detection in
-the website engine and forward only a bounded raw route plus source-tab identity.
-Shared `browser-core` policy requires that engine-confirmed gesture, rejects a
-request after its source tab closes, and canonicalizes only credential-free
-HTTP(S) destinations before opening an ordinary isolated tab. The temporary
-Android capture view has no JavaScript, storage, file/content access, or bridge;
-iOS returns no popup view. Neither host creates a view with broader access than
-the opener.
+Popup handling is a security boundary. Android accepts only an exact active
+website surface and engine-confirmed user gesture, then registers the actual
+System WebView supplied through `WebViewTransport` as a normal browser tab in
+the opener's regular or private profile. Replaying a captured URL is forbidden:
+it would discard POST bodies, redirects, `window.opener`, `postMessage`, and
+script-driven close semantics used by sign-in flows. The popup receives the
+same website settings as its opener and no Capacitor, Summer, extension, or
+native bridge. Native close callbacks only authenticate the exact current
+browser-owned popup surface; shared TypeScript policy closes that tab and
+reactivates its still-live same-profile opener only when the popup still owns
+focus, so a delayed close cannot steal focus from another tab. iOS currently
+keeps its narrower bounded-route popup-to-tab behavior and still requires the
+equivalent child-context implementation and Mac verification.
+
+Popup ancestry and the native presentation bit are included in the bounded tab
+snapshot so a replaced trusted renderer can reconnect without replaying a URL or
+trusting renderer-supplied identity. Shared TypeScript validates the live
+same-profile relationship and current URL on creation, navigation, and reconnect.
+Only common HTTPS authentication/OAuth routes receive modal presentation; trusted
+chrome shows their exact current hostname beside the lock. Pending URLs stay
+neutral, ordinary popups are full tabs, and failed, crashed, insecure, or unrelated
+redirect targets cannot retain authentication chrome. While a sheet is active,
+native presentation glue keeps the opener visible but temporarily removes pointer,
+focus, and accessibility interaction, restoring the exact prior view state during
+dismissal, close, source replacement, and renderer-loss cleanup.
 
 ### Notifications, sharing, and deep links
 
@@ -712,16 +775,18 @@ or cross-platform parity.
 ## Data ownership and current scope
 
 Desktop storage implementations must not become mobile interchange formats.
-Use versioned logical repositories even though cross-device synchronization is
-not currently planned.
+Use versioned logical repositories. The current mobile adapters are local;
+the approved later Mesh password-sync phase has its own
+[security design](mobile-password-manager-design.md) and does not turn these
+repositories into interchange files.
 
 | Data | Shared contract | Desktop adapter | Mobile adapter | Current position |
 | --- | --- | --- | --- | --- |
 | Settings | Validated versioned object plus explicit host projection | Existing stores behind a semantics-preserving adapter | Versioned redundant bounded storage | Local-only |
-| Bookmarks | Stable IDs, URL, title, tags, and quick keys | Existing store behind a lossless portable projection | Versioned redundant bounded storage | Local-only; exportable |
+| Bookmarks | Stable IDs, URL, title, tags, and aliases | Existing store behind a lossless portable projection | Versioned redundant bounded storage | Local-only; exportable |
 | History | Not part of the mobile product | Desktop history remains desktop-owned | No mobile visit store | Excluded by product decision |
-| Tab sessions | Validated snapshots, host-configurable bounds, and restore policy | Existing native-history restore plus a separate logical projection | Redundant app snapshots plus native recreation | Local-only |
-| Passwords/cards | Canonical capability state only | Existing credential service | Platform-managed WebView/WKWebView Autofill; no Summer vault | Platform-owned; signed-device verification pending |
+| Tab sessions | Validated snapshots, host-configurable bounds, URL-only back/forward trails, and restore policy | Existing native-history restore plus a separate logical projection | Redundant app snapshots plus native recreation and synthetic restored tails | Local-only |
+| Passwords/cards | Canonical platform capability state and bounded Android Summer-vault status | Existing credential service | Android native password vault with website fill/save plus platform AutoFill; iOS platform-managed AutoFill; cards remain platform-owned | Android vault requires physical-device verification; no password sync |
 | Cookies/site data | Shared cookie/cache-only clear request | Electron sessions | Implemented Android `CookieManager`/WebView cache and iOS `WKWebsiteDataStore` adapters | Platform-owned; never copied |
 | Summer App settings | Defaults, overrides, and schema | Existing app settings service | App-owned repository | Local-only |
 
@@ -733,11 +798,12 @@ Every repository should define:
 - deletion semantics and export format; and
 - corrupt-record handling.
 
-There is no current workstream for accounts, devices, network replication,
-conflict resolution, or synchronized deletion. If sync is proposed later, it
-must receive its own product and security design. Raw cookies, cache,
-browser-engine folders, and platform credential handles must never become sync
-records.
+No cross-device repository is implemented here. The later password-sync
+workstream must separately define device enrollment, conflict resolution,
+and synchronized deletion before it ships. Other data categories need their
+own product and security decision before any sync work. Raw cookies, cache,
+browser-engine folders, and platform credential handles must never become
+sync records.
 
 ## Summer Apps transfer
 
@@ -828,12 +894,20 @@ the SDK rather than Android- and iOS-specific copies.
 
 The Now Playing transfer demonstrates the exception for form-factor-specific
 presentation without creating a second app package. Its existing desktop
-`renderer.type: "sandboxed"` stays intact, while `mobileRenderer.type: "native"`
-selects a reviewed structured snapshot renderer on Android and iOS. The module
+`renderer.type: "sandboxed"` stays intact, while `mobileRenderer.type: "sandboxed"`
+selects the shared packaged HTML player on Android and iOS. The module
 uses the optional `context.media` facet only after declaring
 `capabilities: ["media-control"]`. Session IDs are opaque and revision-bound;
 the app receives title, paused state, bounded time/duration, and seek support,
-but no URL, origin, native tab ID, artwork, DOM object, or website bridge.
+but no source-page URL, origin, native tab ID, DOM object, or website bridge.
+Android also exposes optional current-track artwork: bounded, credential-free
+HTTPS image URLs restricted to the player's existing declared image origins
+and a current regular source document. Private tabs and unsupported artwork are
+excluded, and the next snapshot clears a previous cover when artwork disappears.
+WebView collection uses Media Session metadata when available, with selected
+video posters and YouTube's current player video ID as bounded fallbacks. Generic
+page images and URL-only video guesses are excluded to avoid unrelated covers.
+The renderer's image policy is unchanged; iOS metadata collection is unchanged.
 
 ### Public SDK boundary
 
@@ -999,7 +1073,7 @@ still say which side is missing; a shared TypeScript build is not native parity.
 | App authors must maintain mobile forks | One SDK, one manifest model, capability diagnostics, and host-neutral examples |
 | Public SDK churn breaks outside apps | Independent versioning, compatibility fixtures, deprecation diagnostics, and migration notes |
 | Store policy blocks executable updates | Reviewed bundled apps until a compliant signed model is approved |
-| Deferred scope quietly becomes MVP work | Keep sync, profiles, private browsing, and P2P behind explicit later decisions |
+| Deferred scope quietly becomes MVP work | Keep sync, durable profiles, and P2P behind explicit later decisions |
 | P2P harms battery or background behavior | Keep it post-parity and require real-device evidence |
 
 ## Verification command map
@@ -1025,7 +1099,7 @@ Commands prove different layers. Do not report one as another.
 | Android download-recovery proof (2026-08-02) | `npm run test:smoke:android -- --flow download-recovery-smoke.yaml` | The rebuilt debug APK retained `slow-download.bin` across force-stop/relaunch through the shared recovery-candidate and reconciliation policy, did not label it interrupted, and observed completion on `emulator-5554` in 2m 06s; cleanup left zero disposable picker fixtures and zero reverse mappings |
 | Android completed-download presentation proof (2026-08-02) | `npm run test:smoke:android -- --flow download-presentation-smoke.yaml` | A real local fixture reached Completed, the trusted Library's **Open or share** action opened Android's **Sharing 1 file** chooser through an opaque ID/content-URI grant, returned to Downloads, exposed no History surface, and left zero exact fixture rows or reverse mappings on `emulator-5554` |
 | Shared bookmark-import packaged smoke | Android: `npm run test:smoke:android -- --flow bookmark-import-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --skip-build --flow bookmark-import-smoke.yaml` | Uses one disposable Netscape HTML fixture with platform-native MediaStore/Files seeding and picker navigation to prove preview normalization, explicit selection, 2/1/0 imported/duplicate/failure accounting, public-HTTP upgrade, loopback preservation, saved-row filtering, duplicate omission, no History, and exact fixture cleanup on both simulators |
-| Shared Mesh packaged smoke | Android: `npm run test:smoke:android -- --flow mesh-app-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --flow mesh-app-smoke.yaml` | The same scenario proves explicit enable/disable, offline identity and profile creation, immediate process restart, vault recovery, canonical `ms1.` suggestion/open handling, and no History. It passes in both complete simulator suites; focused Android execution also rejects Capacitor method-payload and Mesh credential-method logs |
+| Shared Mesh packaged smoke | Android: `npm run test:smoke:android -- --flow mesh-app-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --flow mesh-app-smoke.yaml` | Historical simulator runs covered explicit enable/disable, offline identity and profile creation, restart, vault recovery, canonical `ms1.` handling, and no History. The current single-identity flow retains Profile 1 across restart instead of creating Profile 2; updated contracts and a shared-server restart regression cover that change, but the revised packaged flow has not been rerun on devices. Historical Android execution also checked for credential-method and Capacitor payload logs |
 | Shared Summer App notification packaged smoke | Android: `npm run test:smoke:android -- --flow summer-app-notification-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --flow summer-app-notification-smoke.yaml` | Enables the Guide app's browser-owned notification switch, opens the shared TypeScript page through its structured widget, submits the bounded request, receives the native `shown` result, and proves no History surface in both complete simulator suites |
 | Shared website notification packaged smoke | Android: `npm run test:smoke:android -- --flow website-notification-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --flow website-notification-smoke.yaml` | The same top-level loopback fixture and Maestro scenario request the browser-owned exact-origin decision, receive Allow, submit a bounded native delivery request, retain the decision across restart, expose notification revocation in Settings, and prove no History. It passes on Android and on the iPhone 17 Pro / iOS 26.5 simulator |
 | Shared protected app-setting smoke | Android: `npm run test:smoke:android -- --flow summer-app-secret-smoke.yaml`; iOS: `npm run test:smoke:ios:remote -- --flow summer-app-secret-smoke.yaml` | Saves a disposable Guide secret, proves sanitized page state, force-stop/relaunch recovery, reset, and no History on both simulator hosts; Android additionally checks device logs for zero literal-secret or Capacitor `methodData` exposure |

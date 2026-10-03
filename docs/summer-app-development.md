@@ -6,6 +6,12 @@ is in
 [`electron/main/apps/apploader.ts`](../electron/main/apps/apploader.ts), and
 small packages can be found under [`examples`](../examples).
 
+App runtime code must be Electron/Node-independent. Use the browser-safe
+[`Summer App SDK`](../packages/summer-app-sdk/README.md), Web APIs and scoped host
+facets, including `context.resources.read()` for package assets. See
+[`portable-summer-apps.md`](portable-summer-apps.md) for native integration seams,
+the portability gate, and capabilities still requiring mobile host adapters.
+
 ## Choose the package target
 
 Decide how the app will be distributed before creating files:
@@ -38,6 +44,10 @@ Every app needs `sap.json` and a runtime entry:
 ```json
 {
   "name": "Example App",
+  "localizations": {
+    "he": {"name": "אפליקציה לדוגמה"},
+    "ar": {"name": "تطبيق تجريبي"}
+  },
   "id": "example-app",
   "main": "./index.mjs",
   "version": "0.1.0",
@@ -59,6 +69,48 @@ Every app needs `sap.json` and a runtime entry:
   "tags": ["summer:apps", "summer:offline"]
 }
 ```
+
+### Localize the app name
+
+Keep `name` as the required, language-neutral fallback. To give browser-owned
+surfaces a translated display name, add an optional `localizations` object whose
+keys are BCP 47 language tags:
+
+```json
+{
+  "name": "Video Player",
+  "localizations": {
+    "he": {"name": "נגן וידאו"},
+    "ar": {"name": "مشغل الفيديو"},
+    "pt-BR": {"name": "Reprodutor de vídeo"}
+  }
+}
+```
+
+Summer first checks the exact active locale, then its base language, and finally
+falls back to `name`. For example, `he-IL` uses `he` when no `he-IL` entry is
+present. A locale change therefore updates the displayed app name without
+changing the app's identity. Keep `id` stable and never translate it: routes,
+settings, permissions, storage, package replacement, and uninstall behavior
+remain tied to `id`, not to any displayed name.
+
+`name` remains mandatory for compatibility with older Summer hosts and tools,
+which may not understand `localizations` and will continue to display the
+fallback. Treat that fallback as real user-visible copy, not merely an internal
+label. Preserve proper names and technical brands when translating them would
+be misleading, and add only translations reviewed by a speaker of that
+language.
+
+The host replaces browser-context headers on every `sap://` request. The
+`accept-language` header contains the active Summer interface locale, while
+`x-summer-private-browsing` is `1` for a private session and `0` otherwise.
+Apps decide whether their own pages and operations are available in private
+browsing; the protocol router does not contain app-specific policy. Apps can use
+the language header when rendering their initial document, set the document's
+`lang` and `dir` attributes, and let client code read
+`document.documentElement.lang` so the chosen language remains authoritative
+after hydration. Treat these headers as browser-owned context rather than app
+preferences. Interface locale changes take effect after Summer is restarted.
 
 ### Opening declared file types
 
@@ -111,7 +163,9 @@ opt into `summer:apps`, `summer:widgets`, `summer:offline`, `summer:games`,
 labels but never infers them from roles or capabilities. These tags are filter
 metadata, not authorization. Put descriptive search terms such as `video`,
 `subtitles`, `terminal`, or provider names in `keywords` instead. Keywords help
-find an app but never become filter chips.
+find an app but never become filter chips. Set `aliases` to exact address-bar
+names that launch the app. New manifests use `aliases`; Summer migrates installed
+manifests that stored the former field when it reads them.
 
 Every new app should declare all six `platforms` booleans: `windows`, `ios`,
 `macos`, `linux`, `android`, and `any`. Set `any` to `true` only when the same
@@ -132,6 +186,25 @@ Setting `platforms.android` or `platforms.ios` to `true`, or accurately claiming
 `platforms.any`, declares eligibility for that host; it does not automatically
 install the app. Mobile page apps are therefore compile-time bundled rather
 than downloaded.
+
+### Bundled app icons
+
+Bundled app icons have editable vector sources at `packages/<app>/artwork/icon.svg`.
+Run `node scripts/update-builtin-app-icons.mjs` after editing them; it embeds the
+same self-contained image in the app and widget manifests and their packaged
+copies. `--check` verifies that those copies are current. The phone accepts a
+bounded inert SVG subset: use filled/stroked shapes without external resources,
+fonts, filters, or `url(...)` paint references. Keep the main symbol readable at
+24 px, use the shared 128 px canvas and rounded tile, and check light/dark and RTL
+layouts. Recipes retains its existing icons and artwork. Suggestion-card
+illustrations are separate from these small app icons.
+
+Static app and widget artwork is displayed by the phone's WebView surfaces,
+including the Library. The native Android/iOS widget dock uses the widget's text
+mark unless the app supplies a live, credential-free HTTPS presentation icon
+(at most 2,048 characters). Static SVG data icons are not forwarded to that
+native dock. Clearing the live icon restores the text mark; static artwork stays
+available to the WebView surfaces.
 
 ### Theme-aware suggestion artwork
 
@@ -321,9 +394,12 @@ For a built-in app:
    and runs the shared built-in app releaser. It refreshes only
    `public/builtin/sap/<app-id>/`.
 4. Add `{"path":"/builtin/sap/<app-id>"}` to
-   `public/builtin/appregistry.json`. A bundled experimental app may declare
-   `"enabledByDefault": false`; this affects only its first installation, while
-   package replacements preserve the user's current enabled state.
+   `public/builtin/appregistry.json`. `"enabledByDefault": false` still installs
+   the app on first launch but leaves it disabled. `"installByDefault": false`
+   keeps a bundled app uninstalled until the user selects Install in Apps; add
+   a catalog entry in `public/appregistry.json` with its `bundledAppId` and no
+   download URL. Existing installations still receive bundled updates and keep
+   their enabled state.
 5. Add a focused `tests/<app-id>App.test.ts` that checks registry wiring,
    manifest identity and version alignment, entry existence, compilation, and
    generated-output freshness.
@@ -403,6 +479,15 @@ general app capability. Its page-only preload and main-process service authorize
 the exact bundled `sap://cli/` document on every operation; no other Summer
 App can request or declare terminal access. See
 [`summer-cli.md`](summer-cli.md) before changing that boundary.
+
+File Explorer is a second deliberately narrow browser-runtime exception. Its
+exact protected `sap://file-explorer/` page receives a frozen asynchronous
+facade backed by a main-process filesystem and indexing service. Node's `fs`,
+Electron objects, native handles, and raw IPC never enter the page. Every call
+reauthorizes the exact bundled app, regular session, top frame, and live tab;
+mutations validate paths again, reject overwrites, and use recoverable OS trash.
+This authority is not a manifest capability and cannot be requested by another
+Summer App. See [`file-explorer.md`](file-explorer.md) before changing it.
 
 ## Verify the app
 

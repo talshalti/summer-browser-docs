@@ -15,11 +15,19 @@ Summer currently ships these user-facing browser pages:
 | --- | --- |
 | `summer://downloads/` | Search and manage persisted downloads for the current profile |
 | `summer://history/` | Opt into local history recording, then search, open, or delete saved visits |
+| `summer://pdf/?source=…` | Render a validated local or web PDF in Summer's sandboxed browser-owned viewer |
 | `summer://settings/` | Open a validated section in the browser-owned Settings panel |
+| `summer://password/` | Redirect to the Passwords section of the browser-owned Settings panel |
+| `summer://telemetry/` | Privacy controls and the planned usage-data catalog. New usage and AI-request collection is inactive in 2.10.0; the private-mode switch cuts communication with Summer-operated servers. |
 
-These pages deliberately keep the generic internal bridge disabled. Downloads
-and History receive narrowly scoped preload APIs, while Settings only requests
-a validated Settings destination from the owning regular browser window.
+These pages deliberately keep the generic internal bridge disabled. Downloads,
+History, and PDF receive narrowly scoped preload APIs, while Settings only
+requests a validated Settings destination from the owning regular browser window.
+The PDF page receives only the source encoded in its own canonical URL; the main
+process validates ownership, session, size, and the PDF header before returning
+bytes to the sandboxed renderer. The renderer uses PDF.js's bounded page-view
+buffer plus text and annotation layers, and ships the upstream CMap, standard
+font, ICC, and WASM resources needed for document compatibility.
 History recording is off by default and must be enabled by the user on the
 History page. Turning recording off stops future capture without deleting
 existing entries; deletion remains an explicit, separately confirmed action.
@@ -196,6 +204,7 @@ and a sibling resource directory:
 | `summer://release-notes/` | Registry resolves `/ui/release-notes.html` |
 | `summer://welcome/whatever.page` | Registry first checks `/ui/welcome/whatever.page` |
 | `summer://release-notes/images/header.png` | Registry first checks `/ui/release-notes/images/header.png` |
+| `summer://password/` | Redirects to `summer://settings/#/passwords` |
 
 The resource directory is derived by removing the extension from `entryPath`.
 For example, `/ui/welcome.html` owns `/ui/welcome/`. When a scoped resource

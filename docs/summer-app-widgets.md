@@ -6,6 +6,11 @@ Possible longer-term directions are tracked separately in [`widgets-future-plans
 
 Summer Apps can provide native widgets, sandboxed widgets, or both. Widget metadata lives in the app's `sap.json` manifest.
 
+Widgets are available only in regular browser windows. Private windows do not
+restore or open them, and the host rejects private widget rendering, actions,
+sandboxed frames, and app requests to open a widget. Opening a private window
+does not change the regular window's saved widget layout.
+
 Packages whose primary role is supplying widget surfaces can describe themselves
 with `"type": ["WidgetProvider"]`. Summer uses `SummerApp` to expose launch
 affordances such as **Open here**, address-bar suggestions, and the fallback
@@ -16,6 +21,10 @@ presented as a page that can be opened.
 does not require a public `widgets` entry, and widget loading does not require
 the classification; providers may keep some or all runtime-backed widgets
 internal.
+
+When a widget's manifest name matches its app's name, the widget collection and
+accessible frame title use the app's localized display name for the current
+interface language. Other widget names retain their declared manifest text.
 
 ### Primary widget launch
 
@@ -53,6 +62,10 @@ shared built-in app releaser. This keeps both discovery and output assembly
 generic: adding another built-in package does not require app-specific root
 scripts.
 
+Now Playing's bundled Media Player app is enabled on a new profile. Package
+updates preserve an existing profile's enabled or disabled choice; enabling the
+app does not open its widget until a media session or user action calls for it.
+
 The media player follows this layout:
 
 ```text
@@ -77,9 +90,20 @@ verification commands.
 
 ## Interaction and ownership model
 
-Widgets are independent surfaces, not children of a permanent widget panel. A newly opened widget floats above the browser viewport. The user can move it freely or drag it to the left or right edge; Summer shows a dock preview and attaches it only when the user releases there. Apps can ask Summer to open or close their own widgets, but cannot choose or override a dock position.
+Widgets are independent surfaces, not children of a permanent widget panel. A newly opened widget floats above the browser viewport. The user can move it freely or drag it to the left or right edge; Summer shows a dock preview and attaches it only when the user releases there. When a dock is already open, the preview appears inside that panel; otherwise it appears at the viewport edge. Apps can ask Summer to open or close their own widgets, but cannot choose or override a dock position.
 
-While a widget keeps the browser chrome above the website, the transparent viewport forwards each mouse gesture as one ordered sequence bound to the tab and input backend that received its press. Cancellation releases any forwarded buttons, and switching tabs or losing the Chromium debugger cannot redirect the remaining phases into another page. Mouse Back and Forward complete through that bound tab's navigation history; the native Windows/Linux `app-command` route is deduplicated against the viewport route so one physical side-button click moves exactly one history entry.
+Each populated left or right dock has an independent **Hide panel** control on
+its inner edge. Hiding releases space to the page and leaves a narrow **Show
+panel** control; empty sides have neither a panel nor a toggle. Hidden widgets
+remain mounted, preserving their running state and saved placement. Visibility
+is local to the current window and resets when the dock is emptied or the window
+is reopened. Opening an existing widget explicitly or docking another widget on
+that side reveals it. Both controls support keyboard activation and retain their
+physical left/right positions in RTL layouts.
+Hiding is unavailable while a hosted widget's confirmation dialog is open, so
+its keyboard focus remains visible until the dialog is resolved.
+
+Floating widgets and widgets being dragged can overlap the website, so Summer keeps browser chrome above the page while they are visible there. Stationary widgets in the left or right dock occupy space beside the page and do not activate that overlay, including when a dock is hidden. While chrome overlays the website, the transparent viewport forwards each mouse gesture as one ordered sequence bound to the tab and input backend that received its press. Summer preserves the page's logical focus for floating widgets while its internal focus-emulation transport is available, so moving native focus to the transparent browser surface does not expose a synthetic blur before the forwarded press. DevTools or an extension debugger can temporarily own that transport; the widget remains usable with normal page-focus semantics during that interval, and preservation resumes after the debugger detaches. Cancellation releases any forwarded buttons, and switching tabs or losing the Chromium debugger cannot redirect the remaining phases into another page. Mouse Back and Forward complete through that bound tab's navigation history; the native Windows/Linux `app-command` route is deduplicated against the viewport route so one physical side-button click moves exactly one history entry.
 
 Settings contains the widget collection inside the **Apps & Widgets** hub. Like Summer's grouped Passwords & Autofill settings, the hub uses separate, keyboard-accessible tabs for the related areas instead of adding another permanent panel. The Widgets tab lists every widget declared by an enabled app and lets the user decide which ones remain open. Floating widgets normally can be resized directly from either bottom corner with a pointer or the arrow keys. A browser-owned widget may suppress freeform handles when its semantic sizes intentionally select different interfaces; Market Prices uses only the preset resize control because small/medium are the auto-height ticker and large is the full dashboard/configuration. Summer persists custom dimensions, the floating position, and optional left/right dock placement; using the preset resize control moves to the next declared `small`, `medium`, or `large` `sizePresets` dimensions when available.
 
@@ -141,6 +165,15 @@ Supported commands are `close`, `refresh`, `resize`, `float`, and
 has a settings declaration; the other commands affect only the widget sending
 the command.
 
+On the phone, settings shortcuts from sandboxed widgets, structured widgets,
+and widget menus select the declaring app under **Settings > Apps > App settings**.
+They do not open the app catalogue or mount its widget collection. If the app is
+disabled or has no settings declaration, the shortcut opens **Installed apps**
+instead, preserving access to its Enable controls. Choosing the Tiles view is a
+separate catalogue navigation action. The rendered regression is
+`node packages/summer-android/scripts/test-widget-settings.mjs`; it uses the
+packaged assistant and a real settings controller with disposable memory storage.
+
 ### Opening and closing from an app
 
 The activation context exposes a controller scoped to the calling app. A widget ID must be declared in that app's manifest; one app cannot control another app's widgets.
@@ -171,6 +204,12 @@ floating or docked location. If the user unpins a widget, later app-driven
 `open` calls are ignored. An explicit browser UI request whose purpose is to
 open that widget overrides the dismissal, just like opening it from Apps &
 Widgets; apps cannot mark their own requests as user-initiated.
+
+On desktop, automatic app-driven `close` is also idempotent when its browser
+interface has already closed or been destroyed during lifecycle cleanup. A close
+scoped to a specific browser interface never falls back to another window. Widget
+IDs and enabled manifest declarations are still validated first. Opening a widget
+and explicit browser-owned user requests still require a live interface.
 
 ### Mobile presentation ownership
 
@@ -220,6 +259,17 @@ audit before custom HTML can be enabled.
 ## Native widgets
 
 Native widgets omit `renderer` (or use `{"type":"native"}`) and export `renderWidget(request)` from the app's main module. The function returns a structured snapshot containing `text`, `metric`, `progress`, `list`, and `actions` blocks. Summer validates that snapshot and owns all resulting UI.
+
+The built-in Mesh app provides a small native **Mesh** network-status widget when
+Mesh is enabled. It refreshes every five seconds and distinguishes networking
+off, authorized but not connected, connecting, online, and connection error.
+Its peer count includes only authenticated connected peers; a configured
+coordinator is not counted as a live connection. The widget does not display
+peer addresses, coordinator URLs, identity keys, or raw errors. **Open Mesh**
+leads to the app's own network details and controls. Mesh remains disabled by
+default, and enabling it does not automatically open the widget. The widget
+currently supplies English and Hebrew copy; other interface locales use the
+English fallback until their app-specific wording is reviewed.
 
 ```json
 {
@@ -356,6 +406,8 @@ parent.postMessage({
 ```
 
 To preserve floating and edge-docking behavior without feedback jitter, a custom drag handle sends its starting frame coordinate followed by screen-coordinate deltas. The app should capture the pointer so it continues receiving movement until release:
+
+Summer also tracks movement outside the iframe. If a mouse release reaches only the iframe, the floating and docked host fallbacks finish at their last drag position when the next mouse event reports no pressed buttons. Hovering afterward cannot continue that drag. Touch and pen still complete through their explicit release or cancellation events.
 
 ```js
 const header = document.querySelector("header");
