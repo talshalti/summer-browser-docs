@@ -50,6 +50,15 @@ permission before the link is handed to the operating system. Summer does not
 register itself as a handler for that scheme, and its mail compose routing is
 limited to `mailto:` links.
 
+The requester is the actual main document, including when that document launches
+an app through a hidden iframe or a popup with no referrer. Child-frame requests
+remain denied. External popups are checked without creating a browser tab or
+window, and approval expires if the source document navigates or its tab closes
+or changes windows, or if its renderer is lost. Returning the tab to its previous
+window or recovering the same URL does not revive an old approval. Native external
+dispatch cannot inherit stored website or
+global permission defaults; every website handoff uses the transient prompt.
+
 ## macOS and Linux
 
 The existing direct Electron registration path remains in place. Summer rereads

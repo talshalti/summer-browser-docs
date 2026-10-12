@@ -29,6 +29,8 @@ store to private windows. Existing profiles default to the original top layout.
 Closing one window closes only the tabs and native views owned by that window.
 The profile process remains alive while another browser window is open.
 Closing the final tab in a window keeps that window open with a fresh new tab.
+The dedicated external-MCP window is an exception: it closes after its final
+tab, and the connected client can request a new blank window.
 The [Panic button](./panic-browser.md) closes tabs across all windows in the
 current profile and leaves one regular window with configured destinations.
 

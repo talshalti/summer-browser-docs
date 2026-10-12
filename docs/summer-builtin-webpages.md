@@ -214,8 +214,9 @@ from `dist/assets` while page-specific files remain naturally grouped beneath
 their page's directory.
 
 An unregistered hostname does not match a built-in page. Its request continues
-through the existing `summer://` fallback, preserving the protocol's
-peer-to-peer behavior.
+through the `summer://` packaged-resource fallback. It receives no generic
+Electron or platform-controller bridge. Loading a packaged file under another
+hostname does not confer browser-chrome IPC authority.
 
 ## Trust and preload access
 
@@ -231,6 +232,12 @@ normal webpage instead of a built-in one, and always leave `internalBridge`
 disabled. Enabling the bridge exposes `$summer` and generic `$electron` IPC, so
 it requires review of every renderer action and corresponding main-process
 authorization.
+
+Browser-chrome operations such as permission settings, bookmarks, desktop
+shortcuts, and tab previews additionally authenticate the exact registered
+top-level chrome document in the main process. See
+[`browser-ipc-security.md`](browser-ipc-security.md) for ownership and private
+session behavior.
 
 Treat URL parameters, imports, remote responses, messages, and form values as
 untrusted even on a browser-owned page. Prefer an existing bounded internal API.

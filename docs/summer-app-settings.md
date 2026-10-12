@@ -210,6 +210,11 @@ chrome accepts reports only from the exact current frame, ignores non-finite
 values, and clamps the resulting height to 270–1,600 CSS pixels. Larger pages
 remain scrollable inside that bounded frame.
 
+Tabbed hosts such as Settings → Link can instead fit a declared page to the
+available panel height. In that presentation the heading and tabs stay fixed,
+and the opaque frame owns scrolling without a second host scrollbar. Native
+forms continue to scroll in the host panel.
+
 Custom views are unavailable on mobile hosts for now; keep essential settings
 available through native manifest fields.
 
@@ -367,7 +372,11 @@ export function deactivate() {
 
 `update()` persists and validates the change, then notifies the app runtime
 and refreshes the native settings surface. There is no separate notification
-method.
+method. Refreshes keep the displayed form and custom view mounted, preserving
+scroll position, focus, advanced-section disclosures, and unfinished edits to
+unchanged fields. A failed refresh displays a retryable error alongside the
+last loaded settings; only the initial load replaces the form with a loading
+or failure state. Late snapshot replies cannot overwrite a newer refresh.
 
 | Origin | Runtime event source |
 | --- | --- |

@@ -9,6 +9,13 @@ update in place rather than briefly disappearing. A pending card is visual
 only: it cannot be opened or used for Enter shortcuts or inline completion.
 Starting an unrelated or empty query clears the previous presentation.
 
+Desktop tag filtering animates only cards intersecting the grid's scroll viewport
+(including partially visible cards). Outgoing cards keep their old coordinates
+while visible replacements enter; offscreen cards update without animation.
+The animation does not depend on the total suggestion count. Geometry is read
+in one batch before layout changes, and movement animations are limited to
+visible retained cards. Reduced-motion settings disable these transitions.
+
 The role is descriptive in the current runtime: an app becomes a provider
 only after it is active and Summer discovers its exported `suggest()`
 function. There is no complete public always-on activation contract yet; the

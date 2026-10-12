@@ -6,6 +6,10 @@ is in
 [`electron/main/apps/apploader.ts`](../electron/main/apps/apploader.ts), and
 small packages can be found under [`examples`](../examples).
 
+Desktop backend execution uses [one shared utility host](summer-app-utility-host.md)
+per browser instance. The guide describes its native authority, data ownership,
+shared crash lifetime and security limits.
+
 App runtime code must be Electron/Node-independent. Use the browser-safe
 [`Summer App SDK`](../packages/summer-app-sdk/README.md), Web APIs and scoped host
 facets, including `context.resources.read()` for package assets. See

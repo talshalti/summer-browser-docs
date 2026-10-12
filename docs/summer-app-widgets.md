@@ -114,6 +114,16 @@ This separation is intentional:
 - The user controls whether it remains open and where it is placed.
 - Summer owns persistence, docking, and the security boundary. It provides the outer header by default, but the app may hide or replace it.
 
+The built-in AI Assistant has a browser-owned action-confirmation surface.
+Its sandbox may reserve a conversation slot and report its visible geometry;
+the host clamps that geometry to the frame and displays an opaque trusted card
+there, with a visible in-panel fallback when the slot is unavailable. Host
+messages expose only whether a slot is needed and its measured height. They
+never expose proposed action inputs, approval IDs or approval responses to the
+app. Approval IPC is available only to the regular browser-chrome main frame,
+with a short-lived registered surface and one-use request identity. This is
+not an approval capability in the public widget action API.
+
 ### Widget tags
 
 A widget can opt into Summer's localized catalog filters with a `tags` array. Tags use stable taxonomy IDs rather than display text; Summer owns and translates the labels. Supported IDs are `accessibility`, `communication`, `finance`, `games`, `media`, `productivity`, `sports`, and `system`. Unknown IDs are ignored, and a widget without recognized tags remains visible when no tag filter is active.

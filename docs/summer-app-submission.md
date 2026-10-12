@@ -1,7 +1,7 @@
 # Summer App submission and review
 
 Summer Apps are public, supported features. They run inside Summer's
-privileged Electron main process, so installing one grants it the same practical
+privileged Electron main process, so enabling one grants it the same practical
 access as trusted desktop code. The Summer Developer Team reviews packages
 before listing them in the bundled Store registry.
 
@@ -168,7 +168,12 @@ The review asks:
 4. Does it avoid harmful, deceptive, or abusive behavior?
 5. Are its platform limits and privileged capabilities disclosed clearly?
 
-`verified` means the Summer Developer Team reviewed the app. `featured` means
+`verified` means the Summer Developer Team reviewed the app. Installed copies
+receive this label only when their browser-owned Store provenance matches the
+current reviewed registry package and the retained archive digest has been
+checked. A same-ID developer or GitHub package does not inherit the label.
+Built-in identity comes from the canonical bundled package, never a manifest's
+`builtin` claim. `featured` means
 the team genuinely recommends it for the particular Summer user who will see
 the recommendation. Neither flag creates a sandbox or guarantees that an app is
 free of defects.
@@ -176,14 +181,32 @@ free of defects.
 ## Registry and lifecycle
 
 `public/appregistry.json` is the Store discovery catalog bundled with Summer.
-Its top-level version is bookkeeping for maintainers. Registry entries are
-verified by the Summer Developer Team before publication.
+Its top-level version is bookkeeping for maintainers. Remote package entries
+require an `expectedSha256` field containing the 64 hexadecimal characters of
+the exact ASAR reviewed by the Summer Developer Team. Obtain this digest from
+the reviewed artifact, not from a new download at installation time. An entry
+without a reviewed digest remains discoverable but cannot be installed; the
+native error dialog explains that the reviewed package is unavailable. The
+current remote listings remain unpinned pending that review evidence.
+
+The browser accepts only an app ID from Store UI, resolves its URL, version and
+digest from the bundled registry, and asks for native confirmation before a
+bounded, credential-free HTTPS download. It rejects digest, manifest ID,
+version and main-entry mismatches, rechecks the requester after asynchronous
+work, and installs the archive disabled. Enabling third-party code requires a
+separate native warning. Bundled offline installs keep their existing path.
+Managed Store and GitHub ASAR bytes are checked again immediately before main
+module loading; GitHub digest provenance does not imply Summer review.
 
 - `updateUrl` is metadata; Summer does not yet provide an automatic third-party
   app updater.
-- Installing another package with the same ID replaces the installed record
-  without enforcing a higher version. Settings, protected secrets, and the
-  previous enabled state are preserved.
+- Replacing a managed package must preserve its installation source and, for
+  GitHub releases, its repository. Store packages also bind the reviewed ID and
+  version. Settings and protected secrets are preserved, but Store and GitHub
+  installs remain disabled after replacement. Canonical bundled packages can
+  still replace a conflicting package. Retained managed archives use their
+  installed digest for execution; a later registry change is not automatic
+  remote revocation.
 - Removing an entry from a future Store catalog does not remotely uninstall an
   already installed copy.
 - User uninstall removes the local app record, settings, and loaded app.

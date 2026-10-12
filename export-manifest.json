@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "browserVersion": "2.10.0",
-  "sourceCommit": "5da4704d3ef6a89057e779a4712fc66969b71015",
+  "browserVersion": "2.10.2",
+  "sourceCommit": "dd15291f30fee221320a325089fc5a20679bc2df",
   "basePath": "/summer-browser-docs/",
   "files": [
     {
@@ -16,13 +16,13 @@
     },
     {
       "path": "docs/chrome-extensions.md",
-      "bytes": 152781,
-      "sha256": "44b214e5e6169a4899ad4d75a33f5d7a38c060aacfad7f6286625ec3905647dc"
+      "bytes": 162250,
+      "sha256": "86741808cc6548a69263d818452a8dbaf9c3273e8cb4aff35d2b4586f66f51a3"
     },
     {
       "path": "docs/default-browser.md",
-      "bytes": 4451,
-      "sha256": "fa638da1ba286196624b6453e1fab8d8c829c02ee4881aeb0d1bfc826ba757cc"
+      "bytes": 5064,
+      "sha256": "5e8145a8879da8e55a80fc44c0cb7ba5de2be0428977c0bfe37de89cb9452a34"
     },
     {
       "path": "docs/desktop-mobile-web-extension-differences.md",
@@ -31,8 +31,8 @@
     },
     {
       "path": "docs/desktop-to-mobile-capability-reference.md",
-      "bytes": 95832,
-      "sha256": "30b1e6da340c2d03b07ce5aa690e19c854b3e54436911bb7dbcdb0bd6827f6e5"
+      "bytes": 95881,
+      "sha256": "9bb06f6c5ea18e0cbe61ff4a1ecae97c4fbf2001f621a146f83b3a0e00bd1c45"
     },
     {
       "path": "docs/file-opening.md",
@@ -46,8 +46,8 @@
     },
     {
       "path": "docs/multiple-windows.md",
-      "bytes": 5869,
-      "sha256": "2113dea9a9d3ac6a5ed534f65d39225275c75255ee10344c8d0f2089e1a01046"
+      "bytes": 6010,
+      "sha256": "ee91e121c6377e202b3393fdca917b613200da518121e639f471f6ac58e20381"
     },
     {
       "path": "docs/privacy-policy.md",
@@ -233,6 +233,36 @@
       "path": "docs/release-notes/2.10.0/he.md",
       "bytes": 1492,
       "sha256": "933fbf33b2ed3448c0da6e412c91a1feaea96c48a04b4b12083e9d41be8c7018"
+    },
+    {
+      "path": "docs/release-notes/2.10.1/ar.md",
+      "bytes": 920,
+      "sha256": "9ef589159dbb687431c85eaced2e5bfe1c9fcd96e095ca9f83a145036522f4d2"
+    },
+    {
+      "path": "docs/release-notes/2.10.1/en.md",
+      "bytes": 590,
+      "sha256": "4f8ea6cb96da1d2b2cfc0697dd9209bbc79563b7b1e719b6da5913215870101f"
+    },
+    {
+      "path": "docs/release-notes/2.10.1/he.md",
+      "bytes": 862,
+      "sha256": "4d7186177fe875e195eafda00749215b1b8479082214a4a9aff99f0c5ec0c7ff"
+    },
+    {
+      "path": "docs/release-notes/2.10.2/ar.md",
+      "bytes": 1071,
+      "sha256": "b7fbf52b958fe6364d6409f43155b6f95d33243d7867ae9a4723050fb939f5b3"
+    },
+    {
+      "path": "docs/release-notes/2.10.2/en.md",
+      "bytes": 699,
+      "sha256": "3252baf2090c0026cd320e528ee40e1d312689d7e9b11bc264c70c5aa28fdd44"
+    },
+    {
+      "path": "docs/release-notes/2.10.2/he.md",
+      "bytes": 984,
+      "sha256": "347492d04c957bc5453ae0450513e1e43098ddec35aa0fd9aebfc75c4a00acc8"
     },
     {
       "path": "docs/release-notes/2.2.0/ar.md",
@@ -496,33 +526,33 @@
     },
     {
       "path": "docs/summer-app-development.md",
-      "bytes": 25125,
-      "sha256": "f1109bb9b05db94adafe0882ac49b350d899f453c0fcf6f76c490106bcd538fa"
+      "bytes": 25338,
+      "sha256": "c3b32cfb577c2aeffc7cec30f184b83007f4063a5e255937c4f8afef4422aeba"
     },
     {
       "path": "docs/summer-app-settings.md",
-      "bytes": 16969,
-      "sha256": "0eb787d2625085010d324a0cda82990f905234efb3247250eb600788b137b33a"
+      "bytes": 17630,
+      "sha256": "bbceb183ab25f2c69e20fe911c8e94727afe846554bb33f05dcfe9bff68ba1e3"
     },
     {
       "path": "docs/summer-app-submission.md",
-      "bytes": 9103,
-      "sha256": "c5515622555227d008bbe416fdbd9a4c547945bcb43812832ac8b399b53a13d2"
+      "bytes": 10766,
+      "sha256": "c379fa28c12e4de24789d67c56d0d0448279acd4c427b1d44deab3db6e59e1b5"
     },
     {
       "path": "docs/summer-app-suggestions.md",
-      "bytes": 16200,
-      "sha256": "8588ec4b60393f8e8bd94bc64b1259137985b27fe6a28c0e6adcdc4c6a23d729"
+      "bytes": 16673,
+      "sha256": "6b69213dd780daee4b36b70a2a76f4d606c01d96a3628a3b26361d835c42f37e"
     },
     {
       "path": "docs/summer-app-widgets.md",
-      "bytes": 22501,
-      "sha256": "7c8233ef428896cb7f2f0e62da210bdab5576edf587b2c4f17f5bf9801930c9a"
+      "bytes": 23187,
+      "sha256": "3c1fab3c632f6acf611466cebb828d3eada506b2b27c8c2bf6405a64aaeb72fa"
     },
     {
       "path": "docs/summer-builtin-webpages.md",
-      "bytes": 12434,
-      "sha256": "4f442aec4b3d5d07c36f3682d5e028d3a1a3b0e93721e3304440debc9ace2259"
+      "bytes": 12855,
+      "sha256": "e63f8d6ebaf1c9b0c41d74dc57a9aae471340cbc8472e16a92c783fce3db55c3"
     },
     {
       "path": "docs/summer-cli.md",
@@ -557,7 +587,7 @@
     {
       "path": "site/404.html",
       "bytes": 3487,
-      "sha256": "a716921ee8de72a498fcc61d678913e22fda19f14d441553de54b5b28768619f"
+      "sha256": "be795b0eb3caed2b087fb4ec774c5e4582098edc7531d1a7770b141b79e63c98"
     },
     {
       "path": "site/assets/64x64-B1L0mOhL.png",
@@ -570,9 +600,9 @@
       "sha256": "79afd14b80d0e96528cd231301a24fd26583a42b36f24c50e96e12f56258d96f"
     },
     {
-      "path": "site/assets/docs-qiRCoDoM.js",
-      "bytes": 1111722,
-      "sha256": "42ee924d036d21b629bb1391fb9d5b5aed5d4f6c30531f02fee39069e0aac398"
+      "path": "site/assets/docs-BvuvQPxF.js",
+      "bytes": 1127369,
+      "sha256": "0311abddd108971e28d46bea9d2aefc81ddb295d56b7ef83fed09b70a551fd42"
     },
     {
       "path": "site/fonts/NotoNaskhArabic-VariableFont_wght.ttf",
@@ -582,7 +612,7 @@
     {
       "path": "site/index.html",
       "bytes": 3487,
-      "sha256": "a716921ee8de72a498fcc61d678913e22fda19f14d441553de54b5b28768619f"
+      "sha256": "be795b0eb3caed2b087fb4ec774c5e4582098edc7531d1a7770b141b79e63c98"
     }
   ]
 }
