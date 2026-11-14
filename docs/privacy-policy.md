@@ -1,6 +1,6 @@
 # Summer Browser privacy policy
 
-Last reviewed for Summer 2.10.0.
+Founder’s Pass and translation disclosures updated 2026-11-14; Android crash-reporting disclosure updated 2026-10-24. Other sections last reviewed for Summer 2.10.0.
 
 Summer Browser does not operate advertising services and does not sell or share
 data for advertising. Summer 2.10.0 does not collect product usage events, AI
@@ -8,7 +8,7 @@ request telemetry, AI task descriptions, or AI request text. The new telemetry
 and mandatory agreement remain inactive, including for profiles with saved
 acceptance preferences from development builds.
 
-Existing privacy-filtered technical crash reporting remains available under its
+Existing desktop privacy-filtered technical crash reporting remains available under its
 own preference, described below. The private mode control at `summer://telemetry`
 cuts communication with Summer-operated servers, including crash-report uploads
 and the default Mesh coordinator.
@@ -26,7 +26,46 @@ identity, or private-window state to the crash collector.
 
 This policy covers data collection performed by Summer Browser and services
 operated by the Summer Developer Team. Browser profile data is kept on the
-user's device unless the user deliberately exports or shares it.
+user's device unless the user deliberately exports or shares it, or uses an
+optional cloud feature described below.
+
+## Optional Android crash reports (configured builds)
+
+Android builds containing Firebase Crashlytics have a crash-reporting choice in
+Settings > Privacy. It is off by default. Published Android version 2.10.2
+(2100201) does not contain this integration; it requires a later app update.
+The iPhone/iPad app does not use this Android integration.
+
+If you enable reporting, Firebase, a Google service, receives technical reports
+of uncaught Java crashes. ANR (freeze) reporting is disabled in this update.
+These can include exception messages, thread stack traces, app version, device
+and operating-system information, diagnostic state, and SDK-generated
+installation/session identifiers. Summer does not add browsing breadcrumbs,
+custom browsing logs, URLs or account identifiers, and does not enable Google
+Analytics through this feature. Exception messages can nevertheless contain
+values supplied by application code; these reports do not have the separate
+desktop collector's privacy-filtering guarantees.
+
+Collection starts after enabling and reopening Summer. The SDK then collects
+and sends Java crash reports automatically. Changing
+the setting requires closing and reopening Summer to fully apply. Turning it
+off saves the preference and requests disabled collection and deletion of
+unsent reports. Deletion is best-effort; reports already handed to Firebase's
+transport, including queued transfers, may still be delivered after turning it
+off and cannot be recalled. Enabling reporting again authorizes sending
+any diagnostic reports still saved on the device from regular sessions.
+
+When the SDK may be active, opening private browsing first prompts you to turn
+reporting off and close Summer. Reopen Summer and repeat the private action.
+Private content cannot open in that process if you cancel or the preference
+cannot be saved. Summer does not retain a private URL or action for this
+restart. ANR capture and optional OS memory profiling are disabled, and no
+raw native-memory dump SDK is included.
+
+Firebase processes this data to diagnose reliability problems. See
+[Firebase privacy and security](https://firebase.google.com/support/privacy)
+for Google's processing and retention information. This optional diagnostic
+feature is separate from usage analytics, AI requests and website permissions.
 
 ## Usage and AI telemetry
 
@@ -72,7 +111,7 @@ does not upload this general-purpose log automatically. Exported files should
 still be reviewed before they are shared because even sanitized diagnostic
 context may be sensitive.
 
-## Optional technical crash reports
+## Optional technical crash reports (desktop)
 
 While crash reporting is enabled, each supported crash incident Summer detects is first written to a separate
 durable queue and then sent automatically. A recovery choice—including restoring tabs, starting
@@ -233,19 +272,107 @@ refreshed after one week. Users can disable **Load website artwork** in Captain
 Word settings to retain local address-bar domain cards without Captain Word's
 requests; that setting does not disable First Setup or bookmark-preview requests.
 
+## Optional Founder’s Pass account and cloud processing
+
+Founder’s Pass is optional on supported desktop and Android builds. You can use
+the browser without signing in to this service. Requesting an email sign-in code
+sends your email address to Summer’s hosted account service and to Resend, which
+delivers the code. Verifying a new email address creates a Summer account.
+Summer stores the email address and account identifier; sign-in codes and
+service-session tokens are stored as server-keyed hashes. The browser keeps its
+session credential in privileged profile storage on desktop or Android’s native
+Keystore-protected session store, rather than exposing it to websites.
+
+When you request managed transcription, the recorded audio and any selected language
+are sent over HTTPS to Summer’s service at `https://crashes.summerbrowser.com`
+and forwarded to OpenAI to produce the transcript. Transcription happens before
+you review the returned text for insertion; reviewing or cancelling insertion
+does not retract audio already submitted for processing. Android uses temporary
+app-private recordings and attempts to delete them when the recording operation is disposed.
+The hosted audio inspector writes a private temporary probe file and attempts
+cleanup after the probe process ends. Founder’s Pass cloud operations are
+unavailable in private browsing. The desktop control for communication with
+Summer-operated servers also blocks these service calls.
+
+On desktop, explicitly selecting Founder’s Pass cloud text or page translation
+sends the requested text or plain-text page fragments and target language to
+Summer’s service and OpenAI. Page loading and failure of on-device translation
+do not start cloud translation automatically. Android’s Founder’s Pass integration
+provides account access, linked sessions and managed dictation; it does not add
+Android cloud text or page translation, checkout or subscription-change controls.
+
+The hosted service keeps account-linked paid periods, payment/order and provider
+references, hosted checkout URLs, usage quantities, operation identifiers, content
+fingerprints, and processing outcomes to enforce access, quota and replay checks.
+These service records are separate from the disabled usage and AI telemetry
+described above. The persistent Founder’s Pass database does not store raw audio,
+transcripts, translations, payment-card details or provider API keys. Desktop
+subscription checkout uses PayPlus’s hosted payment flow; Android can use the
+existing paid account. Session expiry and sign-out do not delete the account or
+its associated billing and usage records.
+
+If you use My Devices to link profiles, a short-lived linking grant lets another
+authenticated group member obtain a separate, restricted service session for
+the same account allowance. The service stores the account’s group/member
+bindings and grant identifiers, status, expiry and hashed authentication proofs.
+Email sign-in tokens and allowance balances are not copied as Mesh records.
+Each linked device keeps its own service credential; linking does not give it
+email-session billing controls.
+
+Summer’s service necessarily processes the submitted audio or text; OpenAI
+receives that content. Resend receives sign-in/deletion-verification recipients
+and codes, and the recipient and reference for a deletion-completion notice.
+Requests also carry ordinary network metadata to the receiving service.
+Temporary-file cleanup and provider storage settings are not promises of zero
+provider retention.
+
+### Deleting a hosted Founder’s Pass account
+
+Use **Delete Founder’s Pass account** in account settings or the
+[account-deletion page](https://crashes.summerbrowser.com/founder-pass/account/delete).
+Verify the existing email and explicitly confirm the request. Verification alone
+does not delete the account. The Summer operator processes confirmed requests
+within seven days, stops future renewal before erasure and removes hosted
+identity, sessions, linked-device credentials, usage records and remaining access.
+Deletion does not automatically issue a refund or erase local bookmarks,
+downloads, browser profiles or the separate Mesh identity.
+
+Restricted payment/order/charge/refund and necessary replay records are retained
+for eight years after local erasure, longer where law or a documented legal hold
+requires. The actual accounting cutoff is checked before cleanup. Opaque former
+account/request references remain for eight years and until Summer’s associated
+retained payment records and restorable pre-erasure copies are gone. These
+references cannot sign in or grant paid access.
+
+Completion evidence is retained for 90 days after local erasure. The notification
+address is removed when completion is recorded, or at its approved expiry if
+notification remains unresolved. Managed account-database backups are currently
+disabled. Any future backup copies have a maximum 30-day retention and require
+a deletion-safe restore procedure before use.
+
+PayPlus may retain legally required payment records. Applicable requests for
+provider-held data follow the providers’ supported processes and lawful retention
+rules. Local account erasure does not promise zero provider retention. See
+[PayPlus’s policy](https://www.payplus.co.il/data-security) and
+[Resend’s retention and deletion information](https://resend.com/security/gdpr).
+Use the contact channel below for questions about your account or records.
+
 ## Language detection and page translation
 
 Summer can offer translation when a page declares, or an already-installed
 on-device detector identifies, a language outside the active profile's
 understood languages. Page loading does not trigger a detector-model download.
 
-Translation starts only after the user selects **Translate**. Summer may
-download an allowlisted language model after that request and cache it locally.
-The model host receives the ordinary network metadata required for that
-download, but not the page text. Translation inference runs on the device.
-Summer has no remote text-translation fallback, so page text is not uploaded to
-a Summer or third-party translation service. Language and site exceptions
-remain in the active local profile.
+With the on-device provider, translation starts only after the user selects
+**Translate**. Summer may download an allowlisted language model after that
+request and cache it locally. The model host receives the ordinary network
+metadata required for that download, but not the page text. Translation inference
+runs on the device, without a remote text-translation fallback. Language and
+site exceptions remain in the active local profile.
+
+Desktop users can instead explicitly select the Founder’s Pass cloud provider.
+That choice sends the requested text to Summer and OpenAI as described above;
+it does not change on-device translation into an automatic cloud fallback.
 
 ## What this policy does not cover
 

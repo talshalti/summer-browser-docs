@@ -407,6 +407,13 @@ base64 conversion. The sandbox receives `binaryImage.bytes` as an `ArrayBuffer`.
 
 A sandboxed custom header can invoke the same bounded host controls without receiving Electron access:
 
+The `settings` control opens the requesting app's settings. The bounded
+`settings-approvals` control selects Agent permissions when that app has a
+reviewed full-tab settings page (currently the trusted AI Services built-in).
+It retains the same own-app scope; other apps and mobile hosts use their
+existing app settings view. The AI Assistant's approval-labelled shortcuts use
+this control, while provider setup shortcuts continue to use `settings`.
+
 ```js
 parent.postMessage({
   source: "summer-sandboxed-widget",

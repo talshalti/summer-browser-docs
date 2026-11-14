@@ -31,11 +31,177 @@ load unpacked Chrome extensions through the bundled **Extensions Manager**
 Summer App. This compatibility layer is built on Electron's supported
 extension APIs; it does not provide full Chrome compatibility.
 
+Desktop package downloads and unpacked snapshots publish completed directories
+into browser-owned storage. Retrying an identical download can reuse an existing
+directory only when its full content hash matches and it is an ordinary directory
+inside that storage root. This also handles Windows' `EPERM` response to a
+directory collision, including retrying after an abandoned permission review.
+An unreadable, linked, or changed cached directory fails without replacing it;
+signature verification and permission review still run for every install.
+
+The namespace expansion and its remaining implementation/verification work are
+tracked in [the namespace implementation record](chrome-extension-namespace-implementation.md).
+That record distinguishes native APIs, implemented compatibility subsets, shared
+type declarations, and platform services; namespace presence alone is not parity.
+
+Desktop runtime update checks have a main-process coordinator and prepared
+staging and consumption paths. The production package adapter verifies the
+download's CRX signature and requested ID, hashes the transformed staging files,
+and independently checks the final browser-owned directory before issuing an
+in-memory receipt. Reused cache directories must match the complete file and
+manifest digests; a cache path or saved JSON cannot recreate that receipt. File
+reads have size, descriptor, path and directory checks, including rechecks of
+earlier files. This detects ordinary concurrent changes and does not promise
+atomic or tamper-proof execution against a privileged local process. A retained
+signed archive can rebuild a restored stage offline, with fresh signature,
+requested-ID and file checks and a new in-memory receipt. Serialized archive
+references provide no authority. An earlier Windows package-publication failure
+remains unexplained; subsequent focused passes do not establish its repair.
+
+The older automatic updater also retains access-neutral candidates in
+`deferredWebStoreUpdate` until reload or profile startup. These legacy records
+contain a retained path and hash rather than the strong runtime-update receipt
+or signed archive provenance. While such a legacy candidate is pending,
+`runtime.requestUpdateCheck()` rejects; it does not promote that saved metadata
+into verified update authority. This is a bounded compatibility limitation of
+the combined paths, not complete parity between them.
+
+Updates needing additional access or changing private-session declarations keep
+the accepted incumbent code and grants until explicit review. Disabling and
+re-enabling that incumbent leaves the candidate pending. Review binds the exact
+installation, candidate and current settings; approval does not enable private
+access. A reviewed update accepted while disabled remains disabled, with its
+update lifecycle fact deferred until a healthy load. The manager controls and
+disclosure have focused unit and English/Hebrew/Arabic browser UI checks using
+controlled capabilities. Windows regular-profile MV3 pages and workers also
+pass a real signed-update browser test for `requestUpdateCheck` and
+`onUpdateAvailable`: shared discovery, throttling, full raw manifest events,
+neutral staged reload, expanded-update review/cancellation, incumbent reload
+and explicit approval. Check results use canonical versions; event manifests
+retain their raw spelling. The test controls only the two fixture IDs' signed
+download bytes, while Summer performs signature, installation and permission
+checks. It does not verify the live Chrome Web Store service.
+
+The same test verifies inherited, synchronous `runtime.getVersion()` through
+both aliases and held/current references in pages and workers, including a real
+second extension install and subsequent updates. The three owned update members
+also retain their identities across that second install. This confirms existing
+native support; it is not a third newly implemented API. Main-process update
+facts retain their original document/logical-worker transport audience. Local
+JavaScript callbacks are selected when that transport delivers the fact; a late
+listener check proves no subscription replay, not a per-callback commit snapshot.
+Actual cold-worker wake, offline restart, private-positive update APIs, MV2 and
+other desktop platforms remain unverified. The earlier package-publication
+failure and a separate file-reader timeout remain unexplained despite later
+focused and browser passes.
+
+A historical Windows MV3 probe, before the native-role and sidebar integration, of inherited `runtime.getContexts()` returned the
+same single `BACKGROUND` context through both aliases in a real page and worker.
+It omits the open extension tab and its two distinct child documents, whose
+native frame and public tab/window IDs were independently observed. That probe
+therefore failed: background-only enumeration does not establish full context
+support. Other context roles and filters remain unverified. Complete support
+requires native ownership integration; JavaScript-generated context/document
+IDs are not a substitute.
+
+The prepared Main creation path now carries a closed native role for ordinary
+tabs and public popup-window tabs (`TAB`), toolbar action popups (`POPUP`), and
+side panels (`SIDE_PANEL`). The matching SDK must consume that role before its
+extension observer; an already initialized context cannot be relabeled during
+adoption. Older SDKs without the optional native role witness retain existing
+browser behavior, without claiming completed context enumeration. Public tab
+registration uses each actual signed-32-bit `WebContents.id`; a Main-owned
+registered-kind/Session/owner check selects messaging routes instead of an ID
+range. Source and controlled-unit checks cover these changes; native creation,
+clone/child initial-world behavior, DevTools ownership and explicit private
+context classification remain separate verification gates.
+
+Desktop `management.get` and `getAll` query Summer-managed extensions with retained
+authenticated IDs. Real Windows regular-profile MV3 pages/workers pass native
+refresh, optional grants, disabled-state restart, re-enable and removal checks
+through held/current methods and Promise/callback forms. The cached native
+namespace retains Summer's methods; shared runtime aliases keep callback errors
+visible through the public runtime. Native `getSelf` is unchanged. Private
+inventory and immutable native-cache shapes are unsupported; MV2 and other
+desktop platforms remain unverified. See the implementation record for metadata,
+permission boundaries, the accepted evidence and preserved earlier failures.
+
+Desktop `management.onInstalled`, `onUninstalled`, `onEnabled`, `onDisabled`, and
+`sessions.onChanged` also have Windows regular-MV3 page/worker acceptance. Native
+load/unload facts and accepted manager changes carry historical safe metadata;
+uninstall carries only the ID. The in-memory closed-tab journal emits zero-data
+changes after committed mutations. Page-local event facades preserve callback
+identity through contextBridge, native binding refresh and both aliases. Recipient
+permission, installation and listener lifetimes are checked across queued worker
+wake, including removal of one's own listeners after permission revocation.
+Private-source exclusion is tested; allowed-private observers, MV2, other
+platforms, durable/window/synced sessions and signed automatic updates remain
+unverified. See the namespace record for exact scope and evidence.
+
+Desktop `publicSuffix` supplies synchronous full-PSL domain/suffix lookups with
+current main-owned permission checks, including retained methods after optional
+permission revocation. Default/punycode IDNs work. Safe Unicode display now has
+authenticated page/worker source wiring and a prepared private Chromium
+spoof-aware formatter patch, but the installed binary lacks that native method:
+non-ASCII `encoding: "display"` still rejects. Native compilation and positive
+Unicode/spoof display acceptance remain required. See the
+[private native bridge](../native/electron/public-suffix-display/README.md).
+
+Desktop font enumeration (`fontSettings.getFontList`) remains available. Font
+preferences now have installation-owned per-script settings, control metadata,
+change events and permission/unload restoration source wiring. They require the
+prepared native Session font bridge; the installed binary lacks it, so preference
+get/set/clear methods explicitly reject instead of reporting unenforced storage
+as success. Existing anonymous flat values are preserved without assigning them
+to an extension. Private mutations reject; eligible private inheritance is
+resolved separately. Native compilation and actual rendering acceptance remain
+required. See [the native font bridge](../native/electron/font-settings/README.md).
+
+Desktop `instanceID.getID`, `getCreationTime` and `deleteID` now use a persistent
+local identity owned by the regular profile, with a current `gcm` permission.
+Managed Windows page/worker calls, optional-grant revocation, full restart,
+disable/re-enable, reset and same-ID uninstall/reinstall cleanup are verified.
+Private and sandboxed callers are denied. Token methods and token-refresh events
+remain unavailable because the real messaging backend is still missing; native
+MV2 and other desktop platforms have not been verified. See the implementation
+record for identity storage, worker-lifetime checks and backend revocation gates.
+
+Desktop `declarativeContent` now has persistent, installation-owned rule batches
+and browser-owned toolbar effects. Extension pages and workers can construct
+`PageStateMatcher`, `ShowAction` and ImageData `SetIcon`, and add/get/remove
+`onPageChanged` rules. URL, bookmark and bounded compound-CSS conditions control
+the actual toolbar without returning page matches to extension code or granting
+page access. CSS observes accessible same-origin documents; shadow-tree/private
+pseudo-class and document.domain-relaxed parity remain incomplete. Legacy
+`ShowPageAction` now has an MV2 `page_action` owner check and a real toolbar
+effect implementation; its live MV2 installation acceptance is still unfinished.
+Experimental `RequestContentScript` remains explicitly rejected.
+Private execution remains unavailable. See the implementation record for quotas,
+native grammar validation, action precedence and remaining acceptance work.
+
+Tab metadata is projected for the current recipient at the main-process return
+and delivery boundaries. Without a current tabs permission, matching host grant
+or applicable browser-owned grant, `url`, `pendingUrl`, `title` and `favIconUrl`
+are omitted. A declared activeTab permission alone is not a temporary grant.
+Committed and pending URLs are checked independently. Populated windows,
+recently closed/restored sessions and documented browser-event envelopes share
+the projection; arbitrary extension messages and script results are untouched.
+Nonempty URL/title query filters exclude inaccessible tabs. Title matching uses
+Chromium's bounded, case-sensitive Unicode wildcard semantics; empty URL arrays
+and empty titles apply no metadata filter. File host access additionally requires
+the manager's reviewed file-access grant. Private/session ownership checks still
+precede every projection.
+
 On desktop, **Settings → Apps & widgets → Extensions** embeds the full manager
 when the bundled Extensions app is installed. A disabled manager remains listed
 with an Enable action; uninstalling it removes the subsection. The tab is absent
 in private windows. It uses the same install, access-review, enable/disable,
 reload, options, and removal flows as the standalone app.
+
+Desktop **Settings → AI**, below Apps & widgets, offers curated installation of
+ChatGPT and Claude and a single preferred-extension choice for Summer's AI entry
+points. It uses the normal reviewed installation pipeline. General extension
+management stays in the Extensions tab. See [preferred AI behavior](retired-custom-ai.md#preferred-ai-extension).
 
 The embedded manager retains an opaque, no-network sandbox. Only its exact frame
 can request bounded, fixed manager routes through browser-chrome IPC. The main
@@ -57,6 +223,15 @@ from the handler, restores ordinary calls. Requests are never automatically
 retried or replayed, and the cooldown does not grant additional permissions or
 disable an extension. This limits IPC and log pressure from a broken runtime;
 it cannot unblock a main process already stuck in unrelated work.
+
+Worker handler registration accepts the extension script URL when
+Electron has not yet supplied its scope, using the same identity fallback as
+request authentication. Ordinary website workers remain excluded. Before a
+non-subscription worker API response settles, including a rejection, the main process yields one
+event-loop turn while retaining that request's native worker task. This gives
+browser work a turn between incoming worker bursts without relying on timers in
+Electron's restricted preload realm. The relay retains its 128-call active limit
+and FIFO admission; calls and their side effects are never replayed.
 
 The same `sap://extensions-manager/` Summer App package also runs in Summer's
 Android and iOS hosts. Mobile has a narrower best-effort runtime, but its Web
@@ -551,7 +726,7 @@ for the exact key normalization, authority, quota, and lifecycle contract.
 
 Version 54 adds a shape-compatible, fail-closed mobile
 `declarativeNetRequest.isRegexSupported()` probe without changing desktop
-Electron's full DNR implementation. The method exists only in privileged
+Electron's existing DNR implementation. The method exists only in privileged
 extension contexts that already receive Summer Mobile's permission-gated DNR
 namespace. Its exact `regexOptions[, callback]` contract requires an own string
 `regex`, permits only optional Boolean `isCaseSensitive` and
@@ -757,6 +932,22 @@ the calling extension and removes only its own manager record, regular and
 private runtimes, grants, and browser-owned package data. The default silent
 form and `{showConfirmDialog: false}` are supported; Summer rejects
 `{showConfirmDialog: true}` until it has a browser-owned confirmation surface.
+Extensions with the effective `management` permission can call
+`management.uninstall(id)` for a Summer-managed extension or website app in
+the regular profile. Removing another installation always requires confirmation in browser
+chrome, even if the request sets `showConfirmDialog: false`. Summer revalidates
+the initiating extension and the exact target installation before removal.
+
+`management.generateAppForLink` installs a profile-owned HTTP(S) website app
+with browser confirmation. `get` and `getAll` expose these items as hosted
+apps. `launchApp` opens the saved URL in a regular tab or a normal Summer
+window according to the saved mode. `setLaunchType` confirms changes to that
+mode. `createAppShortcut` confirms Windows desktop shortcut creation and
+binds the link to the profile and exact app installation, so it uses the current
+saved mode and cannot be reused after reinstalling the app.
+The four website app methods require a visible regular-profile extension
+page. Users can also manage website apps from Summer’s Apps panel.
+
 The matching `runtime.setUninstallURL()` registration accepts an empty string
 or a bounded HTTP(S) URL, persists it with the managed extension, and opens it
 only after removal commits. Summer does not open uninstall pages during reload,
@@ -767,8 +958,29 @@ runs. Summer allows Electron-supported extension APIs such as `runtime`,
 `storage.local`, `tabs`, `scripting`, `webRequest`, `webRequestBlocking`,
 `management`, and DevTools extension pages. Summer also adds browser-owned
 compatibility shims for extension pages and Manifest V3 service workers through
-dedicated `chrome-extension://` frame and service-worker preloads. Manifest V2
-backgrounds require one versioned browser-owned context-menu bootstrap because
+dedicated `chrome-extension://` frame and service-worker preloads.
+
+On Electron 45.1+ (including the 44.10 backport used by the macOS packages),
+native session preload URL filters keep extension augmentation in extension
+documents and worker scopes. The website preload excludes extension documents
+and DevTools, with a separate path-filtered registration for Claude's existing
+boolean-only panel authorization bridge; its exact URL validation remains in
+the preload. Browser-chrome IPC preloads are limited to the production chrome
+URL and the configured development chrome URL. Origin fallback is explicitly
+disabled so originless children do not inherit extension or browser-chrome
+bridges. Website originless frames retain their existing behavior, and older
+development engines retain the same preload-side guards. Main-process sender
+authorization remains mandatory for every exposed operation.
+
+Desktop ISOLATED content scripts receive a storage-only bootstrap before their
+own JavaScript, using their existing match, timing and frame declarations. The
+bootstrap connects to a separate browser-owned native broker, so `storage.sync`
+shares the page/worker provider even in MV2/MV3 extensions without a background.
+It exposes no Electron or website bridge and adds no API to MAIN-world scripts.
+See [content storage](extension-content-storage.md) for native identity checks,
+private-session restrictions and immutable snapshot migration.
+
+Manifest V2 backgrounds require one versioned browser-owned context-menu bootstrap because
 Electron does not apply those preloads to `backgroundPage` WebContents. Summer
 adds that bootstrap only to the temporary browser-owned staging copy before its
 final content hash and access review; loading an approved snapshot is read-only.
@@ -788,6 +1000,25 @@ Snap initialization payloads. The browser also enforces a 64 MiB aggregate
 pending-message quota and a 30-second reply lifetime to prevent concurrent
 large messages from becoming unbounded memory pressure.
 
+The regular top-level website messaging bridge distinguishes a failed
+connection from an actual empty reply. Missing or inaccessible extension targets
+receive the same generic connection failure, as do unavailable website receivers
+and pending website deliveries lost to timeout or extension teardown. Promise
+calls reject; callback calls expose `runtime.lastError` only during that
+callback. An actual receiver response of `undefined` or `null` remains valid.
+This allows websites to try another extension build after a failed connection
+without disclosing whether the first target was installed but inaccessible.
+Manifest, current-frame and regular-profile authorization remain unchanged.
+
+A direct HTTPS child of a visible, browser-owned extension side panel may use
+that same narrow messaging method to contact only its owning extension. The
+browser authenticates the native parent, current panel declaration, child
+frame and presentation lifetime on every delivery; manifest origin matching
+still applies. This auxiliary sender has no `sender.tab`, matching Chrome's
+panel context. Ordinary website iframes, packaged tabs/popups, hidden panels,
+nested descendants and private profiles receive no such authority. Navigation,
+replacement, tab activation or closing revokes an in-flight delivery.
+
 The service-worker preload instead exposes one fixed, call-only `contextBridge`
 capability. Summer authenticates its `ServiceWorkerMain` sender and bounds each
 request and response before the main-process broker handles it. Validated
@@ -799,6 +1030,11 @@ from the reviewed manifest. The relay runs at most 128 authenticated API calls
 concurrently, while a FIFO can retain up to 2,048 calls and 64 MiB of serialized
 request data. This accommodates extensions that probe large static rulesets in
 parallel without allowing their burst to become unbounded.
+The worker's `tabGroups` overlay also supplies the same frozen `Color` enum and
+`TAB_GROUP_ID_NONE` constant as extension pages, synchronously before MV3 module
+imports evaluate. These public constants do not call the broker or add
+permissions. Incomplete or frozen native namespaces remain unchanged; methods
+and events continue through the authenticated worker relay.
 Those shims expose brokered real-profile cookies, bookmarks, browsing history,
 download records, alarms, notifications, debugger targets, popup windows,
 proxy settings, privacy/content-setting preferences, commands, context menus,
@@ -815,11 +1051,28 @@ active tab in the current profile window and reject stale targets, popup tabs,
 and history involving internal pages outside HTTP(S), exact `about:blank`, or
 the calling extension's own pages. They preserve the normal navigation warning
 and private-profile ownership checks.
+`tabs.duplicate(tabId)` uses native saved history to copy form/scroll state,
+session storage and zoom. A normal copy is active and adjacent to its source,
+with group membership prepared before creation events; the native Duplicate Tab
+menu creates a background copy. An owned extension-popup source produces a new
+popup with the source's Session, restored size and extension ownership, including
+when another extension requests the copy. Copies remain usable after their
+source closes. Returned metadata uses the caller's current grants; duplication
+does not create an `activeTab` grant. Windows regular-MV3 pages and workers are
+verified through both aliases, Promise/callback and current/held bindings.
+Saved native state can lag the latest renderer changes. Full preference copying,
+split/pinned parity, positive private execution, MV2 and other operating systems
+remain unverified; this is partial Tabs support. See the implementation record
+for the accepted evidence and preserved failed diagnostics.
 `tabs.captureVisibleTab()` returns a bounded JPEG or PNG data URL for the active
 regular HTTP(S) browser tab in the selected Summer window. It accepts Chrome's
 optional window ID and image options overloads, and permits at most two captures
-per second per extension. Summer currently requires the extension's reviewed
-`<all_urls>` host permission; an `activeTab`-only grant does not enable capture.
+per second per extension. Summer requires the extension's reviewed `<all_urls>`
+host permission or a current browser-owned `activeTab` grant for that exact tab
+and HTTP(S) origin. Only an authenticated toolbar invocation creates that
+temporary grant; declaring permission or calling action show/enable does not.
+The caller's installation, document/worker lifetime and current permission are
+rechecked after capture, alongside the browser's tab/navigation checks.
 Private windows, internal pages, extension popups, and changed or stale active
 tabs are rejected.
 MV3 worker calls to `chrome.debugger.sendCommand` can receive a
@@ -832,6 +1085,52 @@ lifecycle and leaves the currently focused window active. Explicit
 separate popup path. The creating extension can later set that regular window's
 width, height, and `state: "normal"`; other extensions cannot resize it.
 Positioning and private-window creation remain unavailable through this API.
+The four window read methods validate `populate` and `windowTypes` and filter
+the process's registered owners. Omitted, null and empty type lists
+use the normal/popup default; valid types with no registered owner yield no
+matches. An explicitly associated caller's `getCurrent()` and `get(-2)` retain
+Chrome's current-window fast path before type filtering. Explicit `get()` IDs
+must be integers from -2 through 2147483647; numeric strings are rejected.
+`getLastFocused()` filters before selecting from native focus observations,
+which begin when the browser registers each window. Earlier focus history is
+unknown and retains a deterministic fallback. Populated window queries select
+their tab owners before reading unrelated tab/window metadata. A disposable
+Windows regular-profile MV3 browser test passes 588 public calls, including
+585 reads through pages/workers, both aliases, Promise/callback forms and held
+references across a real second extension install. It checks populated native
+tab/window identities, observed native focus order, filtered and invalid-query
+errors, and exclusion of a real private window without an extension grant.
+Page window callbacks use the shared page-owned error adapter so `lastError`
+is visible during the callback and restored afterward. Earlier failed browser
+and cleanup evidence is retained. Private-positive, MV2 and other-platform
+behavior remain unverified. Native synchronous argument-error timing is not
+established by this implementation.
+Query type names do not enable creation of unsupported window types.
+
+With the native managed-DevTools owner ABI, Main enrolls the actual detached
+`BaseWindow` as `devtools` in the existing window table. Explicit window queries
+can select it; default queries still select normal/popup windows. Docked tools
+use the inspected window's current owner without changing its type. Retired
+detached owners disappear from reads and mutations immediately, and emit removal
+once their actual native window closes. Stock Electron without this ABI admits
+no DevTools owner.
+
+Populated detached windows expose their actual frontend member with public tab
+ID `-1`, index `0`, and the actual owner window ID, following the selected Chrome
+serialization. A dedicated `tabs.get(rawNativeId)` read and detached frontend
+`tabs.getCurrent()` use that projection. They do not grant ordinary tab mutation,
+messaging, capture, or `tabs.query()` membership. Docked `tabs.getCurrent()` returns
+undefined: initial and redocked Chrome SessionTabHelper history is not modeled
+without a native witness or differential browser evidence. Runtime context IDs
+are a separate native contract.
+
+Numeric DevTools window updates validate all supported geometry, state, focus,
+and attention fields before native mutations, including display intersection and
+state combinations, and recheck owner lifetime after native calls. Numeric
+DevTools removal is rejected; `windows.remove(-2)` can close the real frontend's
+associated owner. Another page or worker has no such association. ChromeOS
+locked-fullscreen, native DevTools/browser execution, other-platform behavior,
+and complete Chrome parity remain unverified by these Main unit regressions.
 An MV3 worker can group that new window's tab with `tabs.group()`, label the
 group through `tabGroups.update()`, and later recover its members with
 `tabGroups.query({title})` followed by `tabs.query({groupId})`. A disposable
@@ -840,6 +1139,14 @@ group ID; it does not simulate Chromium service-worker eviction or a browser
 restart.
 Extensions Manager shows each installed extension's ID; use that exact ID in
 the native messaging host manifest's `allowed_origins` entry.
+On macOS, discovery includes stable-channel Edge hosts installed for all users
+at `/Library/Microsoft/Edge/NativeMessagingHosts/<host-name>.json`, after the
+existing per-user and system locations. The same manifest, origin, and executable
+validation applies to every location.
+`sendNativeMessage()` reports broker failures through a rejected Promise or
+callback-scoped `runtime.lastError` in the extension page's own JavaScript world.
+The callback form returns synchronously, and restores the prior error descriptor
+when the callback returns or throws.
 Native messaging accepts up to 64 MiB of JSON payload from an extension to its
 host, including long recording traces through the MV3 worker bridge. Each
 long-lived Port can queue at most one maximum-size framed message, and all
@@ -847,16 +1154,54 @@ native-host Ports together can queue
 at most two; a host that stops accepting writes is disconnected. Messages from
 the host to the extension remain limited to 1 MiB. Windows host launch resolves
 only the recognized Node batch wrapper without running a shell.
+
+Desktop `windows.create` uses Summer's ordinary browser-window factory for
+regular windows, with at most 32 HTTP(S), `about:blank`, or same-extension URLs.
+It can move an existing regular tab into a new regular window without replacing
+that tab's renderer. Popups support one allowed page; popup tab transfer, private
+window creation, and opener inheritance remain unavailable. Bounds/state changes
+and removal require the calling extension to own the created window; unrelated
+browser windows retain focus-only mutation. Inactive creation selects a tab only
+within its window and preserves the global browser-command owner. The shared
+`front/tabWindowActivation.ts` helper keeps those two selection states distinct.
+These source paths have focused coverage; see the live verification record for
+the current acceptance status.
 `tabs.getCurrent()` returns the authenticated calling tab for normal Summer
 tabs and extension-created popup windows, and returns no tab for service
 workers or browser-owned action popups. Extension-page favicons are copied from
 the same loaded extension package into a bounded raster data URL before the
 file-backed browser chrome renders them; raw cross-origin extension resource
 URLs never cross into the toolbar renderer.
+Extension pages and workers with effective `favicon` permission can fetch their
+own `chrome-extension://<id>/_favicon/?pageUrl=...&size=...` endpoint. This bounded
+fetch bridge returns PNG bytes from the exact current regular tab's cached
+raster; it performs no network lookup. Allowed sizes are 16, 32, 64, 128, and 256.
+Native image conversion falls back to a fixed decoder in browser-owned isolated
+world 954, with document/cache checks before and after execution. Cancellation
+and a five-second delivery deadline retain decoder admission quota until the
+underlying execution settles (four per caller, eight per extension, 32 total).
+Private tabs, unopened/stale URLs, missing grants, and invalid images are denied.
+Each live tab retains at most four validated cached rasters for exact HTTP(S)
+document URLs. When Chromium reuses an unchanged icon without another favicon
+event, restoration waits for that exact replacement document to commit and stop
+loading. New favicon updates invalidate the older entry, and tab disposal clears
+the history; navigation never grants access to a URL that is no longer current.
+This does not implement reserved-resource image URLs or complete native Response
+metadata: bridge Responses have an empty URL and default type. See the
+[live verification record](ai-extension-integration-tests.md) for current evidence.
 Required Chrome API permissions are warnings rather than install blockers so
 real extensions can load and reveal the next compatibility gap at runtime.
 Malformed manifests and changed permission fingerprints are still rejected or
 sent back through review before code runs.
+
+Chromium refreshes existing page namespace properties when another extension
+loads or unloads. Summer preserves its composed methods and event objects on
+Chromium's cached native namespaces after capturing native delegates; final page
+runtime and scripting wrappers are published after preload setup completes.
+Native namespace availability and permission revocation stay Chromium-owned.
+Callback-scoped errors restore the original native error descriptor, and this
+path neither polls for resets nor reinstalls listeners. The integration record
+includes a live second-extension load/unload regression.
 
 An enabled extension is loaded into Summer's persistent browsing session on
 each launch. Before a Summer-initiated startup, enable, or reload, a changed
@@ -897,6 +1242,141 @@ authoritative store. Click-only actions without a declared popup wake their
 managed worker when necessary and dispatch `onClicked` with the active Summer
 tab.
 
+MV3 `action.getBadgeTextColor()` and `action.setBadgeTextColor()` read and update
+the same default/per-tab badge state used by both the toolbar and its overflow
+menu. An unset getter returns `[0, 0, 0, 0]`; rendering chooses contrasting text
+until an explicit color is set. Colors accept four integer RGBA channels or
+Chromium's legacy named/hex/rgb/hsl CSS syntax, with CSS strings limited to 512
+characters. A fully transparent text color rejects without changing state.
+These two methods belong to `action`, rather than the MV2 action namespaces.
+Real page/worker callbacks, inheritance, rejection, narrow-window styling and
+English/Hebrew layout have passed the focused browser fixture. This does not
+establish parity for the other missing action methods.
+
+MV3 `action.openPopup(options?)` uses the same sandboxed browser-owned popup
+view as a toolbar click. It accepts an optional signed-32-bit `windowId` (or
+`windows.WINDOW_ID_CURRENT`), requires an active accessible window and an
+enabled action with a popup, and rejects if another action popup is open.
+Programmatic opening does not grant `activeTab`, dispatch `onClicked`, or
+trigger the side-panel click override. Promise completion returns `undefined`;
+callbacks receive no arguments and observe errors through their own
+`runtime.lastError`. The initiating installation, caller, profile, active tab
+and URL are rechecked after loading. Closure during loading rejects; a
+10-second limit closes a stalled view. API popups anchor at the browser's
+action area, including overflow actions. The parent integration gate passed
+623 tests across 21 suites. A real foreground Windows fixture verified attached
+popup DOM for a page Promise and worker callback, repeat-call rejection,
+browser-owned dismissal, invalid-window/disabled/popup-less errors, scoped
+callback errors, and no URL-metadata/capture authority or click event after
+programmatic opening. The existing MV2 page-action browser regression also
+passed. The new fixture checks an attached browser view; URL presence alone can
+include a helper page and is not acceptance evidence. Earlier loopback-navigation
+and URL-only dismissal fixture failures remain preserved. Evidence is
+`.tmp/action-open-popup-live-evidence-parent-20261027.json` and
+`.tmp/action-open-popup-live-parent-r5-20261027.log`. This method is not
+added to MV2 `browserAction` or `pageAction`.
+
+MV3 `action.getUserSettings()` and `action.onUserSettingsChanged` now have a
+browser-owned pin-state implementation under focused verification. The getter
+returns the committed `{isOnToolbar}` preference, independent of window width or
+temporary overflow. An authenticated native action context menu owns the Pin to
+toolbar checkbox; extensions receive no setter. The manager persists before
+committing state and emits only actual changes. Ordered delivery targets that
+extension's current installation in the regular Session, with a fresh ownership
+check across worker wake. No `activeTab`, action-click event, side-panel override
+or user gesture is created. A failed save, unchanged value, resize, reload or
+restart emits no settings change.
+
+Pins are an additive optional field in the existing format7 installation record.
+Older records without it retain their previous inline eligibility; newly accepted
+installations start unpinned. Update/reload/disable preserve that record's pin;
+uninstall removes it, so a new installation starts unpinned. Private windows read
+the regular preference only for their explicitly allowed active runtime and cannot
+mutate it. The pinned Chromium context-menu caller also forbids pin changes in
+private windows (`extension_context_menu_model.cc:482-488`); its dispatcher
+restricts the settings event to the originating regular context and marks no
+gesture. Split private workers do not receive a manufactured duplicate event.
+The final coordinated Windows fixture passes in English and Hebrew, including
+page/worker settings and events, extension isolation, unchanged-value/resize
+behavior, restart persistence and private read-only inheritance without duplicate
+private events. All eight related browser regressions pass. Evidence is
+`.tmp/action-pin-integrated-live-evidence-parent-20261027.json`. The owned fixture
+drives the real keyboard route and native MenuItem callback; OS menu presentation
+and hit-testing are replaced and remain outside this acceptance claim.
+
+The reusable `extensionActionUserSettings.ts` sink serializes each extension's
+committed changes across asynchronous worker startup, retains only the current
+per-extension delivery chain, and drops obsolete installation identities before
+or during recipient delivery. It has no UI, storage or context-discovery authority.
+
+MV2 `page_action` declarations use `chrome.pageAction` with `getPopup`,
+`getTitle`, `hide`, `setIcon`, `setPopup`, `setTitle`, `show` and `onClicked`.
+The toolbar keeps an unshown action grey; manual per-tab state resets on a
+committed cross-document navigation, while same-document navigation preserves
+it. Declarative `ShowPageAction` requires that actual manifest owner, and an
+explicit hide takes precedence over its rule. Native MV2 backgrounds receive
+the action methods/events through the same authenticated hidden relay used by
+the existing background bridge. Its JSON transport snapshots known own details
+once, preserves hidden tab IDs, and copies bounded icon pixels before delivery.
+Both Chrome and a distinct browser alias receive the owned action event.
+
+The reusable frame Port installer captures the original native `connect`
+delegate, receiver and manifest reader before cached-namespace publication can
+replace them. It retains them only in its closure after the temporary capture
+state is deleted. Native routing requires the same captured top-level document,
+exact extension identity and reserved MV2 relay HTML address, a current MV2
+background manifest, and a single own-data `{name}` argument naming `:api`,
+`:web-navigation` or `:runtime-port` on `summer-mv2-context-menu-v1`. The generated
+relay uses the current guarded `runtime.connect`, never its mutable prototype.
+Other documents, external targets and malformed or ordinary Port calls retain
+the authenticated Summer broker. This restores the relay's intended native hop;
+it exposes no native delegate or general native-Port capability to extension code.
+
+A trusted toolbar invocation can grant temporary HTTP(S) tab metadata and
+visible capture to the current reviewed `activeTab` installation. Same-origin
+reload/navigation retains it; cross-origin navigation revokes it permanently,
+including after history returns. Showing/enabling an action creates no grant.
+Real MV2 background delivery, capture, tab isolation, navigation revocation and
+popup acceptance pass in the disposable browser fixture. Native scripting/CSS
+permission grants, other invocation sources and special-URL parity remain
+incomplete; the portable grant is not native Chrome permission parity.
+
+The MV2 page-action fixture has a bounded, fixed background-stage diagnostic for
+platform failures. It checks the exact same-session native background main frame,
+reads listener/action-entry and native-write start/return/throw counts, then reads
+only its synthetic storage key for equality. The original native write remains
+fire-and-forget: return does not prove settlement. A separate readback can prove
+the key became visible without observing its Promise or consuming rejections.
+Native and controller readbacks stay separate; diagnostic failure cannot delay
+strict cleanup beyond three seconds or replace the original assertions.
+
+At the fixture background's synchronous startup, a passive native-Port observer
+checks only the exact browser-owned API relay name and native sender ID/URL,
+then counts connections, disconnects, generic API response success/rejection and
+matching `pageAction.onClicked` envelopes. It never wraps a Port method, sends a
+message, registers an API subscription or reads event payloads. Response envelopes
+contain no API/event identity, so these counts are not page-action subscription
+ACKs; outgoing queue/request state and an earlier missed connection remain unknown.
+A separate unique same-session, installed-path/version and stable-root-frame
+check reads only the hidden relay's existing `hasListeners` and readiness-function
+presence. It never invokes private readiness with a fabricated listener. Only
+fixed counts/booleans leave either receiver; all original assertions remain.
+
+The toolbar's main-process integration can use the prepared private native
+Session grant/revoke pair when both methods are available. It waits for an exact
+renderer-acknowledged tab/origin/installation receipt before action delivery and
+portable disclosure, then rechecks the installation, active tab, URL, focus and
+action state. Stale owners are revoked with their original activation epoch,
+including after reentrant or late native completion. Internal/file/opaque pages
+can still deliver ordinary actions without granting host authority. Private
+sessions keep the portable metadata path and never call that native bridge.
+The installed binary lacks the pair; its portable behavior is not evidence that
+native scripting or stylesheet permission grants work.
+The current real Windows fixture verifies focused HTTP(S) actions and ordinary
+about:blank click/popup delivery with URL/capture access still denied there.
+Because trusted toolbar activation rechecks native focus, that fixture requires
+runner-level visible-window consent on Windows rather than hidden locator input.
+
 On ordinary page right-clicks, Summer composes matching extension-supplied
 `contextMenus` commands into its native browser menu. A single visible normal
 root is shown directly; multiple roots expand beneath the extension's name,
@@ -911,9 +1391,10 @@ delivery. Manifest V3 workers may immediately message the clicked page from
 `onClicked` or from the content-script message that records the right-clicked
 element; Summer lets either extension event dispatch unwind before entering
 Electron's native `tabs.sendMessage` binding, matching Chrome's queued delivery
-without terminating the extension host. Summer translates its public tab ID
-back to the target `WebContents` ID at that native boundary; exposing one ID
-while addressing the other would silently miss the page's content script.
+without terminating the extension host. Before entering that native boundary,
+Summer resolves the exact registered target and verifies its public tab ID
+equals the actual `WebContents` ID, so native and broker delivery address the
+same contents.
 Manifest V2 listeners that existed before a programmatic script injection stay
 on Electron's native event, while listeners registered by injected code stay on
 Summer's isolated-world bridge. A tab message dispatches to both disjoint sets
@@ -1008,6 +1489,71 @@ include bounded URL, request, initiator, and top-frame domains, resource types,
 request methods, response headers, and session-only Summer tab filters. Matching rules
 can allow, block, redirect, upgrade schemes,
 or modify request and response headers with deterministic conflict handling.
+
+Mutable stores currently belong to each native Session and clear when the
+extension unloads, including disable/reload. Dynamic rules also lack durable
+browser-restart and extension-update persistence. Chrome's
+[dynamic rules persist across browser sessions and upgrades](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-and-session-scoped-rulesets).
+Session rules are correctly memory-only, but Summer's every-unload reset and
+separate regular/private mutable stores remain compatibility differences.
+These four methods are therefore partial support; the accepted static-settings
+and cache-owner changes do not alter their existing lifetime or privacy scope.
+
+Desktop `getDisabledRuleIds({rulesetId})` and `updateStaticRules({rulesetId,
+disableRuleIds?, enableRuleIds?})` use that same authenticated main-process
+matcher in extension pages and workers. IDs are signed 32-bit integers; unknown
+IDs are retained, duplicates collapse, and disable wins a collision within an
+individual-rule update. The per-extension limit is 5,000 disabled IDs across all
+declared static rulesets, including currently disabled rulesets. Disabled IDs do
+not release static or regex allocation. Whole-ruleset updates still use
+enable-wins semantics and retain individual masks.
+
+`ExtensionDnrStaticRules` stores enabled-ruleset selection and masks under the
+manager's record identity and deterministic installation revision. Restart and
+disable/re-enable preserve them; packed updates and explicit unpacked reload
+reset them. Legacy installations start with manifest defaults and no disabled
+IDs. Dynamic and session-rule lifetime behavior is unchanged. A serialized
+operation validates every ID and quota, prepares all eligible loaded matchers,
+saves synchronously, and then publishes complete generations. Failed saves or
+stale callers publish no candidate generation. Regular and explicitly permitted
+private runtimes share these static settings, matching Chromium's redirected
+service; existing session, permission and sandbox checks still apply. No worker
+matcher is published during preparation: network evaluation uses immutable,
+synchronously selected main-process generations. The reference is Chrome's
+[static-rule API](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#method-updateStaticRules)
+and pinned Chromium `prefs_helper.cc` (disable wins and update lifetime),
+`declarative_net_request.webidl` (signed `long` IDs), and
+`rules_monitor_service.h` (incognito redirection).
+
+Page and worker bootstrap use the same fixed twelve-method Summer DNR owner.
+When the native per-context cached namespace is replaceable, both aliases are
+preflighted before its methods are changed, so Chromium binding refresh returns
+Summer's methods rather than a separate native rule store. Method descriptors
+are verified after all root/namespace publication, and failed installation
+verifies restoration of the attempted changes. The page's specialized frozen
+view retains the cached namespace as its prototype after copying its own fields.
+An explicit reinstall updates the cache atomically; held functions continue to
+use current main-process authorization and the actual public runtime error scope.
+The twelve methods include the four former page helper fallbacks, preserving
+Summer's quota, regex, feedback and action-option backend instead of accidentally
+selecting native helpers. Existing native constants and events are retained.
+
+Windows managed-MV3 tests verify real regular and explicitly permitted private
+filtering across two extensions, current/held methods through both aliases,
+static restart/reload behavior and private revocation. The focused integration
+gate passes 678 tests. Management and English/Hebrew side-panel regressions pass
+on the same built code. The initial private fixture selected a stale manager
+page; its failed campaign remains recorded, and a real Refresh correction passes
+the private case separately. Evidence is
+`.tmp/dnr-full12-acceptance-parent-20261028.json`.
+
+Missing/delayed native caches, immutable or incompatible descriptors and fixed
+non-enumerable page methods use a bounded overlay when it can be published;
+otherwise installation reports failure. Refresh continuity is not accepted for
+these shapes. Other platforms and MV2 are not live verified. This does not establish
+full DNR parity, additional feedback behavior or mutable-rule browser-restart
+persistence; existing main permission and private-session boundaries remain.
+
 Redirects accept one validated direct URL, extension path, regex substitution,
 or complete URL transform. Extension-controlled `urlFilter` and `regexFilter`
 matching, `regexSubstitution`, and `isRegexSupported` operations compile through
@@ -1016,10 +1562,13 @@ ASCII-only; rules default to case-insensitive matching, while
 `isRegexSupported` defaults to case-sensitive matching and honors
 `requireCapturing`. Syntax failures and the Chrome-shaped 2 KiB compiled-program
 cap report `syntaxError` or `memoryLimitExceeded` without executing an unsafe
-pattern. Included response-header conditions use any-match semantics, excluded
+pattern. Generic relay calls preserve omitted flags and pass malformed flag
+values to the same validator as dedicated DNR calls; they do not coerce invalid
+values into valid booleans. Included response-header conditions use any-match
+semantics, excluded
 conditions take precedence, and late block or redirect actions run only after
-response headers exist. Extension service-worker DNR methods use either Electron's
-implementation or Summer's authenticated relay. With
+response headers exist. Summer-owned DNR methods in extension pages and workers
+use authenticated dedicated bridges or the generic relay. With
 explicit `declarativeNetRequestFeedback` permission, `getMatchedRules`
 returns bounded recent-match telemetry under a 20-call-per-10-minute quota.
 Summer does not substitute a declared `activeTab` permission for a browser-owned
@@ -1045,6 +1594,35 @@ are included only when that listener requested the corresponding
 `extraInfoSpec`; listener removal also removes the browser-side subscription.
 Blocking responses are resolved within Summer's bounded 500 ms deadline.
 
+Windows regular-MV3 browser acceptance covers tab highlighting. `tabs.highlight` takes strip
+indices, activates the first requested index and returns a populated Window with
+each tab's URL/title fields projected using the caller's current grants. Summer's
+main process owns the highlighted set and range anchor separately from the
+active tab. Queries, `tabs.update({highlighted})`, close/reorder/move operations
+and the trusted tab strip use that same state. Revisioned renderer snapshots
+acknowledge native activation before updating the legacy scalar, preventing an
+API selection from being echoed back as a one-tab replacement.
+
+`tabs.onHighlighted` reports complete ID sets without exposing internal native
+provenance. It also observes meaningful active/anchor changes. Delivery stays in
+the actual source profile and rechecks installation, source and listener lifetime
+when a retained worker wakes. Per-listener ordering includes the transition from
+suspended to live; unsubscribe or reinstall retires queued facts. Page/worker
+Tabs methods and events use fixed-schema native-cache transactions, public-realm
+callbacks and rollback. Repeated setup carries bounded worker listener state only
+when its privileged relay is unchanged; this metadata grants no authority.
+The tab strip sends selection on primary pointerdown because its drag handler
+cancels compatibility mouse events. The real pointer, modifier, keyboard,
+narrow-window, selected-close and popup paths pass along with exact no-op and
+fresh-event checks. Two current/held page/worker matrices cover `highlight`, `get`
+and filtered `query`, both aliases and Promise/callback forms across a real
+second extension load. Actual native worker stop and event-driven restart pass;
+ungranted private selections and mutations stay isolated. Separate ordinary-close
+and Hebrew-layout regressions pass on the same build. This does not verify
+private positive access, MV2, other platforms, split-tab parity or modified/delayed
+native cache shapes, and does not claim all forced Tabs methods were browser-tested.
+Evidence: `.tmp/tab-highlight-acceptance-parent-20261028.json`.
+
 For normal Summer tabs, `webNavigation` exposes the top-level and OOPIF-safe
 subframe lifecycle:
 `onBeforeNavigate`, `onCommitted`, `onDOMContentLoaded`, `onCompleted`,
@@ -1058,10 +1636,37 @@ rejected because Summer does not yet provide their exact semantics. Electron
 does not expose Chrome's exact
 transition cause, so committed and same-document events report `link` with no
 qualifiers, and same-document event type is inferred from the old and new URL.
-`onCreatedNavigationTarget` and prerender-specific `onTabReplaced` remain
-unavailable. MV3 worker `webNavigation` subscriptions
+`onCreatedNavigationTarget` has Windows regular-MV3 page/worker browser acceptance
+for genuine native window-open targets. Independent source review, the native
+creation probe and same-build lifecycle/selection regressions pass. It captures the exact
+native source frame before adopting the actual guest, joins that guest to a
+published browser tab or website popup, and publishes the six Chrome event fields
+before its held navigation facts. An absent native opener can resolve through the
+actual navigation initiator; unknown frames never fall back to the main frame.
+The native guest keeps Chromium's initial navigation, including request bodies
+and referrers. Named-target reuse is not a creation. Pending creations and held
+facts have bounded capacity and lifetime. Event audiences are captured at native
+observation; later listeners cannot inherit old facts. Private sessions remain
+excluded. The accepted fifteen-target case also proves exact public/native target
+ownership, original form POST preservation, same-realm permission grant/revoke/
+regrant, revoked listener cleanup, no historical replay and real stopped-worker
+wake ordering. It counts as partial support; MV2, other operating systems,
+allowed-private observers, immutable/delayed cache shapes, source-frame-removal
+parity and full namespace behavior remain unverified. Acceptance and authoritative
+retained raw evidence are pinned in
+`.tmp/webnavigation-created-target-acceptance-parent-20261028.json`.
+Prerender-specific `onTabReplaced` remains unavailable. MV3 worker `webNavigation` subscriptions
 are retained by Summer's bounded service-worker relay so registered navigation
 events can wake a suspended worker when Electron omits that namespace.
+Navigation capture and frame queries admit native regular-profile tabs only;
+private sessions have no `webNavigation` authority. Internal source registration,
+current recipient permission and retained listener lifetime are checked again
+when queued events wake a worker. Automatic worker re-subscription retains that
+listener lifetime and refreshes its validated URL filter; unsubscribe and unload
+retire it. A Windows managed-MV3 regression proves regular page/worker listeners
+and frame queries exclude actual private main-frame and iframe navigations,
+while regular navigation still arrives before and after them. The earlier build
+reproduces the private metadata leak. This does not add private API support.
 
 Electron retains only the last native listener registered for a `webRequest`
 event. Summer therefore installs one browser-owned `onBeforeSendHeaders` hook
@@ -1087,7 +1692,7 @@ vary by operating system.
 ### Website content settings
 
 Summer implements extension-owned `contentSettings` rules for `location`,
-`notifications`, `camera`, `microphone`, and `sound` using its existing Electron
+`notifications`, `camera`, `microphone`, `clipboard`, and `sound` using its existing Electron
 runtime. Permission rules govern native checks and requests and the website
 camera/microphone status bridge; sound rules govern native tab and popup mute.
 User permission Deny remains authoritative. Sound blocking composes with user
@@ -1096,6 +1701,23 @@ Permission rules apply to subsequent native checks and requests. Setting Block
 does not revoke a media stream already granted to a document, end an existing
 geolocation watch, or provide Chrome permission-change subscription events.
 Previously granted capture ends through its normal stop/navigation lifecycle.
+
+Clipboard rules govern the original native advanced Async Clipboard permission:
+reads, custom-format writes and writes without a gesture. Native secure-context,
+focus and Permissions Policy checks remain in force. Ordinary sanitized writes
+with a gesture and legacy synchronous clipboard operations retain their existing
+browser policy. In the existing runtime, a sanitized-write permission query can
+report Granted while the user's global Deny still blocks the actual request;
+extension clipboard rules do not change that distinction. Clipboard `get` composes the rule with the same current user
+permission used for admission. Source and focused unit verification pass;
+Windows managed-MV3 browser acceptance passes in regular and explicitly permitted
+private sessions. The 106-call page/worker matrix covers both aliases and calling
+styles, including 24 private-access rejections before permission, regular-rule
+restart persistence, user Deny, private rule lifetime and revocation. Native
+evidence includes 54 permission queries and 11 requests with rejecting-only
+clipboard items, without supplying a usable payload or reading the system
+clipboard. Actual data transfer, broad iframe parity, MV2 and other platforms
+remain unverified. See the implementation record for the accepted evidence.
 
 Rules validate Chrome content-setting patterns, including schemes, subdomains,
 and explicit ports. The most recently installed eligible extension takes
@@ -1119,7 +1741,7 @@ and the live requesting document after asynchronous consent.
 Inherited regular permission Allow becomes Ask in private sessions under
 Summer's conservative consent policy; explicit private rules can grant access.
 
-`cookies`, `javascript`, `images`, `popups`, `autoVerify`, `clipboard`, and
+`cookies`, `javascript`, `images`, `popups`, `autoVerify`, and
 `automaticDownloads` reject `get`, `set`, and `clear` explicitly. They require
 capabilities or complete gesture/lifecycle semantics not established by the
 existing runtime. The earlier profile-global scalar placeholders are ignored
@@ -1164,6 +1786,23 @@ Creates, moves, updates, non-empty `removeTree()` operations, and folder events
 use that hierarchy; browser-owned edits or Chrome/Safari imports continue to
 deliver URL-bookmark lifecycle signals to pages or wakeable workers. Bulk
 reorder events remain reserved for browser-owned UI sorting.
+`bookmarks.getRecent(numberOfItems)` accepts one required positive signed-32-bit
+integer and returns URL bookmarks only, newest insertion first, with real
+hierarchy parent/index fields. It uses the same authenticated, `bookmarks`
+permission-checked page/worker broker and Promise/callback transport. Chromium's
+schema and implementation require a count of at least one and exclude folders
+(`bookmarks.json`, `bookmarks_api.cc:395-419`, and `bookmark_utils.cc:134-150`).
+Summer now records an optional browser-owned `dateAdded` on genuinely new durable
+URL-bookmark insertions, including imports; updates, moves and portable sync edits
+preserve it. Input cannot replace that creation time. Existing records are not
+backfilled: unknown or invalid dates remain the existing zero sentinel, ordered
+after known dates, with equal dates following hierarchy traversal order. Creation
+times are validated as non-negative safe integers. The additive desktop field
+does not change portable import/sync schemas or infer historical creation dates.
+Real Windows page/worker acceptance passes for recency, folder exclusion,
+parent/index metadata, argument/callback errors, permission denial, mutation
+preservation and restart persistence. Evidence is
+`.tmp/bookmarks-browsing-data-live-evidence-parent-20261027.json`.
 History operations use Summer's on-device visit store
 populated from normal tab navigations. Download operations start real Summer
 downloads, expose Chrome-shaped in-memory records, and route
@@ -1178,15 +1817,35 @@ are owned by the exact extension that attached them, route Chrome's
 allowed CDP domains and child-session identifiers, and deliver bounded
 `onEvent` and `onDetach` signals to pages or wakeable workers. Tab closure,
 navigation to a different browser-owned URL, and extension unload clean up ownership.
-Summer yields an internal focus-only debugger session before an extension
-attaches and retries widget focus preservation after that extension detaches;
-an input-routing session that has already handled an OOPIF gesture remains
-pinned until its normal tab lifecycle cleanup.
+Summer yields an internal focus-only or idle hover/wheel debugger session before
+an extension attaches and retries widget focus preservation after that extension
+detaches. A pressed OOPIF gesture keeps its debugger session until the matching
+input-sequence cleanup so an extension cannot interrupt an active drag.
 Proxy, privacy, content-settings, and font-settings calls use browser-owned
 profile state. Content-setting objects expose Chrome's `get`, `set`, and
 `clear` contract without inventing `onChange` events that Chrome does not
 provide. Idle queries use Electron's OS idle state rather than returning a
 constant result.
+
+Enforced desktop privacy controls currently cover native WebRTC IP handling,
+translation offers, browser-provided remote search enrichment, password-saving
+offers, and website address/card autofill. Password/autofill settings cancel
+pending requests when disabled and recheck before guarded vault commit or final
+disclosure. They cannot enable private website saving/autofill or bypass normal
+HTTPS, foreground, explicit-choice and card identity checks. Remaining privacy
+preferences and font-rendering mutations still need enforcement; see the
+[member inventory and verification record](chrome-extension-namespace-implementation.md).
+
+The cookie, referrer, Do Not Track and hyperlink-auditing successors use Chromium's original extension
+preference authority in prepared native source. Their Main adapters preserve
+permission, private-consent and installation lifetimes without a JavaScript value
+store. The referrer consumer covers native request metadata, page preferences
+and worker preference watchers. DNT uses actual native request headers and the
+window Navigator preference; auditing uses Blink's anchor-ping gate. The shared
+adapter synchronizes whichever of these fixed native owners is available before
+starting accepted extension workers. These additions remain uncompiled and have no
+matching browser acceptance; an unavailable native owner rejects calls. Their
+registry entries describe pending native integration, not verified support.
 
 Some desktop APIs are intentionally first-pass compatibility surfaces rather
 than full Chrome UI parity. Desktop `commands` accepts Chrome's string or platform-keyed manifest
@@ -1206,7 +1865,147 @@ subscribe, and then delivers the event once. Summer waits for Electron's
 extension delivery cannot re-enter the native menu callback. `sidePanel.open()` hosts the
 declared extension page in a sandboxed native side panel that reserves browser
 layout space; one panel is active at a time, and `setPanelBehavior()` can route
-toolbar action clicks to it. `omnibox` recognizes a manifest
+toolbar action clicks to it. The browser-owned `ExtensionSidePanel.vue` shell
+provides a fixed header with a close control and an inline-edge resize separator.
+With `openPanelOnActionClick`, the toolbar badge toggles a matching visible panel
+through its close animation rather than destroying and recreating it.
+Programmatic `sidePanel.open()` preserves a matching extension page in the same
+window and tab scope, including its runtime connections and current pending load.
+Window-wide panels remain open when an unrelated tab closes; tab-specific panels
+close with their owning tab.
+Web links opened by a visible side panel, including its embedded web frames, are
+recreated as ordinary HTTP(S) Summer tabs in that panel's owning window. Native
+popup windows remain denied; background-tab requests keep their disposition.
+A dedicated sandboxed, isolated preload retargets trusted ordinary root HTTP(S)
+anchor clicks to native new-tab activation. Page preventDefault still cancels the
+action. Modifier/middle clicks, downloads, named targets and internal links are
+unchanged. The preload has no IPC or page-world API. A MessageChannel task restores
+its temporary target/rel attributes after default activation; later page-owned
+attribute writes, including writes of the same value, are preserved.
+Unknown external root navigation, including form POST and script-driven location
+changes, remains blocked rather than being replayed as a GET. The panel document and its conversation stay retained.
+Embedded-frame navigation within the provider still stays inside that frame.
+Credential-bearing URLs, non-web schemes, form-POST popup requests, and requests
+from hidden, closing, crashed or detached panels are rejected. New tabs retain
+the normal browser navigation and HTTP-consent checks; no panel privilege or
+window-opener relationship is transferred to the destination.
+Remote panel child frames run the browsing session's isolated preloads, matching
+ordinary tabs. The host keeps `nodeIntegration: false`, `sandbox: true`,
+`contextIsolation: true`, and `webSecurity: true`; enabling subframe preloads does
+not expose page-world Node or raw IPC APIs. Manifest content-script host grants
+and the browser-owned preload API authorization remain separate checks.
+The tab-only passkey permission wrapper and unclaimed file-drop interceptor do
+not install beneath a top-level packaged extension origin: their main handlers
+cannot authorize those documents. Chromium's native credential/drop behavior
+and site upload handlers remain in control there. Ordinary tab guards and all
+main-process authorization checks retain their existing behavior.
+Tab-specific panels retain their native document separately from the window's
+default panel. Switching tabs hides the departing panel and restores the returning
+tab's previously opened panel without reloading its page or runtime context.
+Temporary tab hiding emits neither `sidePanel.onClosed` nor another `onOpened`
+when that same opened document returns. Explicit replacement and actual closure
+still emit lifecycle events. This follows the [Chrome side-panel lifecycle](https://developer.chrome.com/docs/extensions/reference/api/sidePanel).
+
+Only one panel is visible per window, while other opened tab scopes remain cached.
+A default panel can be retained behind a contextual panel and is shown only where
+the activated tab permits it. Closing a visible contextual panel also clears the
+window's dormant default fallback, so it cannot reappear after an explicit close;
+other tabs' independently opened panels remain intact. Disabled or removed panels
+are disposed rather than resurrected by a later tab activation.
+
+Tab-specific `setOptions` declarations are process-local and replace the default
+declaration for that tab; they do not inherit its document path or enabled state.
+Old persisted numeric tab overrides are ignored. Tab removal, extension unload,
+and cross-window tab detachment clear the matching runtime overrides. A moved tab
+disposes its old window-bound sidebar document and requires an explicit open in
+the destination window. Window teardown and extension unload dispose all matching
+retained documents. Changing options never creates an unopened panel.
+
+### Side-panel conversation reuse
+
+Summer's generic AI actions and the existing official ChatGPT and Claude badges
+restore the current tab's own conversation beside its webpage. Generic actions
+use the saved preferred extension; a named badge keeps its own extension identity.
+Reuse stays within one regular browser window, prefers the current tab's scoped
+panel, and never borrows another tab's scoped conversation. An extension-defined
+window default is a fallback only when both the default and current tab's effective
+declaration enable the same resource. If no reusable conversation remains, normal
+configured-panel or extension-action opening applies. Repeated generic Open AI
+focuses the panel; a named badge toggles its matching visible conversation through
+the existing close animation. No additional AI toolbar button is added.
+
+The browser restores each tab's native panel record without reassigning its tab,
+window, extension runtime context, or panel declaration. A tab without its own
+reusable panel follows the extension's configured-panel or ordinary action flow;
+the browser does not copy another tab's declaration. Independent conversations
+remain cached when their tabs are inactive, and temporary hiding or restoration
+emits no synthetic extension close/open events. Closing tab A disposes A's scoped
+panel while tab B's own document, draft, and runtime connections remain alive.
+
+The shell close control closes the actual displayed source conversation and
+removes every tab selection referring to it. Those selections suppress older
+fallback panels, preventing an explicitly closed conversation from reappearing
+on tab return. Native scoped/default close behavior continues to clear its
+default fallback. Removing a tab disposes its scoped conversation and selections;
+unloading the extension or tearing down the owning window disposes all its panels. Reuse
+never crosses windows or private-session boundaries. Ordinary programmatic
+`sidePanel.open()` retains its existing scope and open behavior.
+
+Opening expands from the docked edge over 180 ms; reduced-motion preferences
+disable the transition. The close button and extension-requested closes (such
+as the toolbar badge) share a 180 ms collapse before closing the native document;
+reduced motion closes immediately. Extension-requested animation completion is
+acknowledged by the owning browser window with a per-request token; stale
+acknowledgements cannot close replacement panels, and an unresponsive renderer
+falls back to closing after 400 ms. Unload and window teardown remain immediate. Native content
+bounds follow the animated layout width in both directions.
+Drag the separator or focus it and use Left/Right (Shift for larger steps),
+Home/End for width limits, or double-click to reset. Width is remembered within
+the window across panel closures, capped at 600 pixels, and constrained to leave
+webpage space on narrow windows. The native extension view occupies only the
+content rectangle below the header and outside the resize gutter; renderer
+stacking cannot cover a native child view. Bounds still pass the existing
+owner-window validation in the main process. While the navigator is visible
+(including its exit animation), native side-panel content stays below the
+browser overlay. This only changes view ordering: the extension document stays
+attached with its session and size, and no extension open/close events fire.
+The renderer paints only the panel header, border and resize gutter; its native
+content rectangle remains transparent. Otherwise raising browser chrome for a
+new address-bar query would blank the entire panel, including areas outside the
+navigator. Dismissing the navigator restores the same native panel above browser
+chrome with its draft and input intact.
+Wallpaper and widget visibility do not lower the panel. Native popup controls
+retain their upper layer. Focused coverage lives in
+`tests/extensionSidePanelUi.test.ts` and `tests/extensionSidePanels.test.ts`.
+`playwright/ai-panel-tab-ownership.spec.ts` exercises the official AI badge route
+with a synthetic same-origin extension: independent drafts, switching both ways,
+closing inactive tab A while B stays focused, and B's live connection afterward.
+This does not authenticate a real provider account.
+`playwright/extension-side-panel-tab-return.spec.ts` verifies retained native
+documents, drafts, runtime identities, native content transparency while the
+navigator is raised, input after dismissal, and explicit close behavior with a synthetic
+extension in its own disposable browser profile.
+`playwright/extension-panel-storage-parity.spec.ts` verifies child preload
+availability, sandbox/Node/IPC isolation, and granted versus ungranted host
+storage/cookie behavior. Its ChatGPT-origin child uses intercepted static HTML
+and an unknown authorization nonce; it does not establish live ChatGPT loading.
+
+`getPanelBehavior()` reads that extension's saved
+click behavior, defaulting to false, through the same authenticated page and
+worker broker. It returns a fresh object and does not open a panel. Windows MV3
+page/worker acceptance verifies process-restart persistence, another extension's
+independent settings, held/current API references after extension installation,
+argument and permission refusals, and Promise/callback error shape. Side-panel
+callbacks now report errors in the public page runtime; worker setters resolve
+undefined and error callbacks receive no arguments. Private execution remains
+unavailable. Evidence is `.tmp/side-panel-behavior-live-evidence-parent-20261027.json`;
+this does not establish complete side-panel namespace or cross-platform parity.
+`sidePanel.getLayout()` reports the physical right edge. Lifecycle deliveries
+capture the creating installation and cannot transfer a retained document's
+historical events to a replacement installation. The retained document and
+visibility behavior above supersedes earlier single-panel acceptance records.
+
+`omnibox` recognizes a manifest
 keyword followed by a space,
 requests at most eight suggestions, and dispatches selections back to the
 extension.
@@ -1224,6 +2023,18 @@ messaging surface. One-shot messages and long-lived ports are authenticated to
 the exact extension, world, live frame, tab, current host grant, registration,
 and explicit user approval before they reach `onUserScriptMessage` or
 `onUserScriptConnect`.
+Deferred dynamic content-script and user-script phases retain the exact frame,
+URL and document generation observed when scheduled. Tab destruction, detached
+frames and replacement navigation (including same-URL reloads) retire pending
+work. Closure while discovery, approval or world preparation is pending cannot
+move that work to a replacement document; unexpected phase failures are reported
+without logging script contents or page data.
+`identity.getRedirectURL(path?)` returns a string synchronously in extension
+pages and workers, following the [Chrome identity contract](https://developer.chrome.com/docs/extensions/reference/api/identity#method-getRedirectURL).
+Its fallback concatenates a bounded path after the native extension's fixed
+`https://<id>.chromiumapp.org` host; it performs no IPC, authentication or network
+request. Existing callable native bindings are preserved. Other identity methods
+retain the authenticated broker and its permission checks.
 Generic `identity.launchWebAuthFlow()` runs in a fresh in-memory, sandboxed
 session and resolves only an exact extension redirect origin; Google-account
 token APIs remain unavailable. Native messaging resolves a
@@ -1250,10 +2061,113 @@ preserves the current capture owner.
 The reported `fullscreen` flag remains `false` because Electron does not expose
 the captured-tab fullscreen state to this broker. Tab groups
 provide persistent-for-the-process Chrome metadata, membership, events, and
-atomic same-window movement; cross-window group movement remains rejected.
-Extension pages with `tts` permission receive the platform Web Speech provider
-through Chrome-shaped callback and Manifest V3 Promise methods;
-service workers do not have a speech engine and therefore do not expose TTS.
+atomic same-window and cross-window movement between owned normal windows of the
+same privacy/session class. Batch transfers stage native view ownership with
+rollback before publishing tab order, ownership and group identity together;
+attachment events observe the committed group, and an emptied source closes later.
+Chrome-style pinning is main-owned, lasts for the native tab lifetime, and keeps
+pinned tabs before ordinary tabs through creation, dragging and transfers. Pinning
+ungroups a tab; grouping unpins it. Its visible keyboard-accessible unpin control
+is separate from Summer's persistent Keep behavior. Automatic discard eligibility
+is not implemented; enabling `autoDiscardable` rejects rather than reporting a
+successful state change.
+
+Tab `width` and `height` describe the exact owned content view, including a
+legitimate zero-sized view, rather than the decorated OS window. Native popups
+use their own content area. Missing, stale, foreign-window or mismatched private-partition
+geometry returns zero; it never borrows another tab's size. Window API dimensions
+continue to describe the outer window. Positive container bounds alone do not
+prove page rendering or screenshot readiness.
+
+On the declared Electron 44.1 runtime, inactive browser tab views stay attached
+to their exact owning window with native visibility disabled. A new unparented
+view receives the exact owning chrome's measured, size-matched positive viewport
+bounds before its first hide when that layout is cached; missing-layout readiness
+is a separate acceptance case. Creation does not
+select or focus them; selecting a tab hides the previous page before revealing
+the selected page through the existing stacking/fullscreen path. Switching uses
+constant native view operations. Transfers hide pages before native ownership
+changes, and rollback restores every native parent, order and bounds before
+restoring visibility. Native BrowserWindow popups retain their own lifecycle.
+This uses existing window/session checks and changes no renderer IPC authority.
+Native visibility and screenshot readiness are distinct from the document's
+Page Visibility API: Summer does not spoof document visibility or claim Chrome
+background throttling parity. Capture in a wholly hidden OS window remains a
+separate unverified/failing diagnostic case.
+
+The native screenshot contract in `extension-created-tab-viewport.spec.ts` uses
+the exclusive test project and requires the existing Windows visible-window
+opt-in. Run its two cases with process-level `SUMMER_E2E_WINDOW_MODE=background`
+and `SUMMER_E2E_ALLOW_VISIBLE_WINDOWS=1` for non-activating native windows.
+The default hidden gate skips these pixel assertions; positive geometry and
+document visibility do not establish a native screenshot surface.
+
+Document-targeted `tabs.sendMessage` preserves exact-document delivery by mapping
+Summer UUIDs to native Chromium UUIDs and revalidating the current frame, document,
+tab/session and extension authority before delivery. Native read-only identity
+resolution is preferred; where unavailable, a fixed isolated scripting identity
+probe additionally requires the extension's current scripting permission. Missing
+identity authority fails closed. No document ID is dropped for a frame-wide or
+MV2 broadcast fallback.
+Regular extension pages and service workers with `tts` permission share one
+browser-owned speech queue. Native local voices and accepted extension engines
+are available through callback and Promise queries. `ttsEngine` requires its
+required manifest permission; manifest `tts_engine.voices` and dynamic
+`updateVoices` registration are installation-owned. Eligible engines register
+both speak and stop listeners. Utterance callbacks target one current document
+or worker generation and are revoked on completion, cancellation, permission
+loss, navigation, worker replacement or unload. Dynamic voices survive disable
+and restart; uninstall removes them. Speech text and callback capabilities are
+never persisted. Native Windows fallback uses local System.Speech when Electron
+has no local Web Speech voices; other platforms use the isolated native Web
+Speech host and remain unverified here. Native prosody depends on the OS voice;
+full SSML interpretation and OS voice-catalog change observation remain gaps.
+
+General settings contains a speech-language manager for engines implementing
+the stable install, uninstall and status events. Only Summer browser chrome can
+issue those language requests. The UI displays actual engine status updates;
+successful request delivery does not imply installation succeeded. Speech and
+language management are unavailable in private windows. ChromeOS-only audio
+stream synthesis remains excluded. See the namespace implementation record for
+quotas and current verification evidence.
+
+Regular-profile extensions with the effective `printerProvider` permission can
+register printer discovery, CDD capabilities and print-job callbacks. Summer's
+browser Print command and unmodified Ctrl+P (Cmd+P on macOS) open a browser-owned
+destination/settings dialog when accepted providers are present. User-configured
+shortcuts retain priority. Private windows and profiles without providers retain
+the system dialog; the dialog also offers an explicit system-print action.
+Website `window.print()` still uses the system print path.
+
+Selecting a destination does not share document bytes. Explicit Print generates
+the current tab's PDF using its selected media/orientation, then delivers a real
+recipient-realm Blob to the selected provider. PDF is preferred when advertised;
+PWG-only printers receive genuinely rasterized PWG data, never renamed PDF.
+The rasterizer uses bundled PDF.js in an isolated, sandboxed, no-preload,
+network-denied renderer. Its ephemeral session accepts only fixed bundled
+assets; page pixels are streamed into bounded PWG row compression. sRGB8/sGray8,
+advertised DPI and duplex sheet-back transforms are honored without silently
+reducing the requested resolution. Over-budget jobs fail explicitly.
+
+CDD/CJT support covers media size, orientation, color, DPI, copies, duplex,
+collation and reverse-order settings. Hardware settings stay in the ticket;
+unsupported rendering fields, including page ranges and vendor ticket items,
+are rejected. Documents are limited to 64 MiB, raster pages to 40 million pixels
+and 200 pages, and raster DPI to 72–600. Discovery, capability and job callbacks
+have 10-second, 15-second and 120-second limits. Native PDF generation has a
+60-second limit; retries cannot queue more PDF work while a native render remains
+unsettled. Printer selections belong to the actual browser document;
+callbacks and sequential chunk tokens belong to one native provider document
+or worker generation. Navigation, active-tab changes, close, permission loss,
+provider replacement and shutdown revoke related capabilities and release tasks.
+Printer lists, titles, capabilities and documents are not persisted. “Sent to
+printer” means the provider returned `OK`, without claiming physical output.
+The ChromeOS USB identification event remains deferred. Windows native page and
+worker delivery, actual PDF/PWG jobs, provider-error retry, reload cancellation
+and stale-callback isolation passed managed Summer acceptance. Independent
+native raster decoding also verified pixels, duplex transforms and cleanup.
+Other platforms, native MV2 and long idle suspension remain unverified; see the
+namespace implementation document for the exact acceptance record.
 
 Runtime compatibility initialization does not rewrite approved extension
 snapshots. Its cost is bounded to the registered frame, service-worker preload,
@@ -1272,16 +2186,16 @@ is not the target where it would weaken Summer's permission or isolation model.
 | Surface | Current behavior | Classification and reason | Intended endpoint | Source |
 | --- | --- | --- | --- | --- |
 | Page alarms, notifications, DNR, and action state | The generic broker wrapper installs before specialized APIs, and each setup step is isolated from failures in another namespace. | First-class Summer broker; one restricted Chromium namespace cannot suppress unrelated APIs. | Keep the composable broker, but require every exposed member to have one real owner, isolated initialization, and an explicit unavailable result when its owner cannot start. | `electron/preload/extensionApiAugment.ts` |
-| Worker cookies, bookmarks, history, downloads, alarms, notifications, windows, settings, and DNR | Calls and events use the authenticated worker relay; cookie access also requires a matching HTTP(S) host permission. Summer installs an own DNR namespace over Electron's native mutable-rule namespace so static and mutable rules are evaluated by one browser-owned matcher. | First-class Summer broker. | Give pages and workers the same supported semantics through one authenticated, permission-checked relay, including worker wake-up, lifetime, cancellation, and cleanup. | `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionChromeApis.ts` |
-| Runtime and external messaging without a complete native pair | Same-extension one-shot and port messaging use the authenticated browser-owned router, with bounded payloads, reply lifetimes, worker wake-up, disconnect, and extension cleanup. Extension-to-extension calls follow Chrome's manifest default: every extension may connect when `externally_connectable` is omitted, while a present key restricts callers to `ids`; one-shot messages dispatch through `onMessageExternal` and ports through `onConnectExternal`. Regular top-level HTTP(S) pages receive only a narrow `runtime.sendMessage()` method, and the browser process accepts it only when the target's validated `externally_connectable.matches` covers the authenticated current page URL. | First-class Summer broker; page-owned values select a target but never grant authority, child frames and private-profile pages cannot use the website bridge, and no page-owned transport carries browser API authority. | Retain browser-owned sender authentication, bounded replies and worker wake-up while expanding external message surfaces only when their manifest declaration and profile boundary can be enforced exactly. | `electron/preload/externalExtensionMessaging.ts`, `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionChromeApis.ts` |
+| Worker cookies, bookmarks, history, downloads, alarms, notifications, windows, settings, and DNR | Calls and events use the authenticated worker relay; cookie access also requires a matching HTTP(S) host permission. Summer keeps its twelve DNR broker methods on the per-context native cache when its shape permits, retaining one browser-owned matcher across binding refresh. | First-class Summer broker. | Give pages and workers the same supported semantics through one authenticated, permission-checked relay, including worker wake-up, lifetime, cancellation, and cleanup. | `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionChromeApis.ts` |
+| Runtime and external messaging without a complete native pair | Same-extension one-shot and port messaging use the authenticated browser-owned router, with bounded payloads, reply lifetimes, worker wake-up, disconnect, and extension cleanup. Extension-to-extension calls follow Chrome's manifest default: every extension may connect when `externally_connectable` is omitted, while a present key restricts callers to `ids`; one-shot messages dispatch through `onMessageExternal` and ports through `onConnectExternal`. Regular top-level HTTP(S) pages receive only a narrow `runtime.sendMessage()` method, and the browser process accepts it only when the target's validated `externally_connectable.matches` covers the authenticated current page URL. | First-class Summer broker; page-owned values select a target but never grant authority, ordinary website child frames and private-profile pages cannot use the website bridge; a direct HTTPS child of its live, visible owning extension panel may message that extension without a sender tab, and no page-owned transport carries browser API authority. | Retain browser-owned sender authentication, bounded replies and worker wake-up while expanding external message surfaces only when their manifest declaration and profile boundary can be enforced exactly. | `electron/preload/externalExtensionMessaging.ts`, `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionChromeApis.ts` |
 | Optional permissions | Required permissions and hosts are active immediately; `optional_permissions` and `optional_host_permissions` remain inactive until `permissions.request()` receives explicit native user consent. Exact and wildcard-covered narrower host grants persist per extension, affect browser-process API and host authorization, can be revoked through `permissions.remove()`, emit wakeable `onAdded` / `onRemoved` events, and are erased when the extension is removed. | First-class browser-owned consent boundary; undeclared requests, required-permission removal, malformed input, and denied prompts fail without changing grants. | Keep grants constrained to the currently declared optional set, serialize concurrent mutations, and require browser-owned consent before widening extension authority. | `electron/main/extensions/extensionChromeApis.ts`, `electron/preload/extensionApiShim.ts` |
 | Alarms | Bounded alarms persist in browser-owned storage, are restored only for active managed extensions that retain the effective permission, fire overdue one-shots after restart, and advance repeating schedules before dispatch. | First-class persistent scheduler with per-extension quotas and lifecycle reconciliation. | Retain durable mutation-before-event ordering, worker wake-up, and shutdown-safe timer cleanup. | `electron/main/extensions/extensionAlarms.ts` |
-| Tabs, frame navigation, and general read-only services | `tabs.move` transfers individual tabs within or between regular Summer windows of the same privacy class, emits `onDetached` / `onAttached`, and reconciles both tab strips; per-origin zoom methods/events, OOPIF-safe frame-tree webNavigation, MHTML page capture, non-private recently closed tabs, top sites, and bounded CPU/memory/storage information use browser-owned state. | First-class where Summer owns an exact source; grouped cross-window movement and unsupported navigation target events remain explicit gaps. | Add a surface only when its identity, ownership, and lifecycle can be represented without inventing Chrome state. | `electron/main/front/tabs.ts`, `electron/main/extensions/extensionBrowserHost.ts`, `electron/main/extensions/extensionWebNavigation.ts`, `electron/main/extensions/extensionPageCapture.ts`, `electron/main/extensions/extensionSessions.ts`, `electron/main/extensions/extensionSystemInformation.ts` |
-| Capture, tab groups, and TTS | Desktop/tab capture uses a browser-owned bounded picker and Electron media IDs; pending/active/stopped/error tab-capture state is authenticated and observable through `getCapturedTabs()` and `onStatusChanged`; tab groups own same-window metadata and events; extension-page TTS uses Web Speech. | Bounded compatibility surfaces; captured-tab `fullscreen` remains false, cross-window groups remain unavailable, and worker TTS has no speech engine. | Add only state Summer can observe exactly, and keep raw Electron capture authority out of extension contexts. | `electron/main/extensions/extensionCapture.ts`, `electron/main/extensions/extensionTabGroups.ts`, `electron/preload/extensionApiShim.ts`, `electron/preload/extensionTts.ts` |
+| Tabs, frame navigation, and general read-only services | `tabs.move` transfers individual tabs within or between regular Summer windows of the same privacy class, emits `onDetached` / `onAttached`, and reconciles both tab strips; per-origin zoom methods/events, OOPIF-safe frame-tree webNavigation, MHTML page capture, non-private recently closed tabs, top sites, and bounded CPU/memory/storage information use browser-owned state. | First-class where Summer owns an exact source; unsupported navigation target events remain explicit gaps. | Add a surface only when its identity, ownership, and lifecycle can be represented without inventing Chrome state. | `electron/main/front/tabs.ts`, `electron/main/extensions/extensionBrowserHost.ts`, `electron/main/extensions/extensionWebNavigation.ts`, `electron/main/extensions/extensionPageCapture.ts`, `electron/main/extensions/extensionSessions.ts`, `electron/main/extensions/extensionSystemInformation.ts` |
+| Capture, tab groups, and TTS | Desktop/tab capture uses a browser-owned bounded picker and Electron media IDs; pending/active/stopped/error tab-capture state is authenticated and observable through `getCapturedTabs()` and `onStatusChanged`; tab groups own metadata, membership and atomic transfers between same-session normal windows; extension-page TTS uses Web Speech. | Bounded compatibility surfaces; captured-tab `fullscreen` remains false and worker TTS has no speech engine. | Add only state Summer can observe exactly, and keep raw Electron capture authority out of extension contexts. | `electron/main/extensions/extensionCapture.ts`, `electron/main/extensions/extensionTabGroups.ts`, `electron/preload/extensionApiShim.ts`, `electron/preload/extensionTts.ts` |
 | Native messaging | Chrome, Chromium, Edge, and Brave native-host manifests and allowlists are validated before one-shot or persistent framed processes start; ownership, process count, writes, replies, and teardown are bounded. | First-class broker for platform-installed compatible hosts; host installation/discovery UI is outside Summer. | Retain exact executable and origin validation and never expose child processes or filesystem paths to extensions. | `electron/main/extensions/extensionNativeMessaging.ts` |
 | `storage.session` | Summer preserves Electron's complete native MV3 area, including default content-script denial, trusted-page grant/revocation, shared values, and scoped change events. A complete native area must expose every promised method plus `onChanged`; otherwise trusted pages and workers receive Summer's authenticated in-memory fallback while content-script access fails closed. | First-class native Chromium binding on the pinned runtime, with a bounded Summer fallback for trusted extension contexts. | Keep Chromium as the authoritative isolated-world owner while it passes the completeness and E2E contract; never replace it with a DOM relay or manifest-widening bootstrap. | `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionSessionStorage.ts`, `playwright/extensions-manager.spec.ts`, `docs/chrome-extension-content-script-session-storage.md` |
 | Worker `storage.sync` | The browser-owned provider enforces Chrome-shaped quotas and scoped events; paired devices can opt in to Mesh transport. | Mesh opt-in on both hosts, active signed extensions and foreground execution are required. | Verify installed-extension workflows separately from protocol and broker tests; see [Mesh storage](extension-mesh-storage-sync.md). | `electron/main/extensionStorageSyncHost.ts` |
-| Worker `storage.managed` | A validated read-only OS-admin policy file supplies extension-scoped values and change events; the area is empty when no policy file exists. | First-class bounded policy provider with an accurate empty state when no administrator source is configured. | Connect to a validated read-only policy provider and emit policy change events; an empty area remains correct only when no policy source is configured. | `electron/preload/extensionApiShim.ts` |
+| Page/worker `storage.managed` | Summer's bounded read-only OS-admin JSON provider supplies `get`, `getKeys`, zero-valued `getBytesInUse` and managed change subscriptions. Byte queries validate Chrome's selectors; `set`, `remove` and `clear` reject with the read-only-store error. | Windows regular MV3 pages/workers pass the original 272-call baseline and a 528-call follow-up, including current/held methods, real second-extension binding refresh, selector errors, permission denials and manager lifecycle. Empty policy, controlled defaults and no false change events are verified; schema-filtered populated policy, positive change delivery, content scripts, private execution, MV2 and other platforms remain unverified. | Keep native storage-container ownership stable, preserve other areas and authorize reads/events again before releasing data. Native provider/schema integration and `managed.setAccessLevel` remain unfinished. | `electron/preload/extensionApiShim.ts`, `electron/main/extensions/extensionManagedStorage.ts`, `electron/main/extensions/extensionChromeApis.ts` |
 | Context menus without an authenticated relay | Eligible extension pages and workers use the authenticated context-menu host with persistent worker wake-up and extension cleanup; unsupported contexts keep the namespace absent. | First-class Summer broker where an authenticated relay exists, otherwise fail closed. | Route every eligible page and worker through the authenticated context-menu host with worker wake-up and cleanup; otherwise keep the namespace absent. | `electron/preload/extensionApiShim.ts` |
 | `idle` | Queries use the OS idle state, while one shared browser-owned monitor emits threshold-aware `onStateChanged` transitions and cleans up with the extension lifecycle. | First-class cross-platform OS-backed query and event producer. | Add a cross-platform OS-backed transition producer for `onStateChanged`, with one shared poll/subscription source and extension lifecycle cleanup. | `electron/main/extensions/extensionChromeApis.ts` |
 | Browsing-data removal | Cookies, Summer history, and Summer download records honor their supported scopes; cache rejects unsupported scoping. Password and autofill-profile removal is all-time and profile-wide, preflights every requested category, names the requesting extension and categories in a localized native warning, rejects cancellation, verifies password removal, and invalidates open Settings state. Payment cards are never deleted. | Honest bounded subset with preflight validation and explicit user confirmation for sensitive profile-wide deletion; no false success for cancellation or data Summer cannot prove it erased. | Implement each category only with the exact scope Summer owns; retain confirmation for password/profile deletion, keep payment cards out of `formData`, and reject unsupported or scoped requests before any deletion. | `electron/main/extensions/extensionChromeApis.ts`, `electron/main/extensions/extensionBrowsingData.ts`, `electron/main/credentialStore.ts`, `electron/main/autofill.ts` |
@@ -1291,10 +2205,88 @@ is not the target where it would weaken Summer's permission or isolation model.
 | `offscreen` | Desktop: Chromium/Electron owns MV3 create/close/has, document isolation and lifetime; Summer no longer provides a hidden-document host. This unlisted Electron API is provisional, not a full-support guarantee. Mobile V56: required-permission MV3 callers get Promise-only create/close/has for exact `WORKERS`, one PAGE document per extension/eight globally, a six-member provisional runtime plus non-enumerable `lastError`, verified package modules/Workers, and process-only teardown under strict CSP/navigation/network bounds. Other mobile reasons and suspended/killed-app execution are absent. | Desktop native provisional API; mobile bounded compatibility host. | Keep the desktop native lifecycle contract passing on Electron upgrades; reason-specific audio timeout, crash recovery and all-platform parity are not established by the DOM-parser test. Expand mobile reasons only with reason-specific sandbox and lifetime enforcement. | `playwright/extension-offscreen.spec.ts`, `shared/chromeExtensionCompatibility.ts`, `packages/summer-android/src/extensions/mobileExtensionPackage.ts`, `packages/summer-android/android/app/src/main/java/com/hiketech/summerbrowser/SummerTabsPlugin.java`, `packages/summer-android/ios/App/App/SummerTabsPlugin.swift` |
 | `userScripts` | Explicitly user-approved registrations execute in isolated worlds on reviewed hosts. A frame-preload handshake gates every injection, installs each configured CSP before execution, and exposes only permission-bounded runtime one-shot/port messaging when `messaging` is enabled. | First-class bounded isolated-world bridge; every call is re-authorized against the live frame, current host grant, matching registration, extension state, and user approval. | Retain fail-closed authorization, bounded messages/ports, and configuration-before-injection ordering across every injection phase. | `electron/main/extensions/extensionUserScripts.ts`, `electron/preload/extensionUserScriptWorld.ts`, `electron/main/extensions/extensionChromeApis.ts`, `electron/main/extensions/extensionManager.ts` |
 | Desktop `commands`, `omnibox`, and `sidePanel` | On desktop, string or platform-keyed shortcuts are normalized with Chrome's modifier rules, active Summer accelerators and AltGr combinations remain unavailable, conflicts resolve by stable extension ID and appear unassigned through `getAll()`, omnibox deletion/disposition events are complete, and default or tab-specific native panel state is wired into Summer UI; tab panels hide and restore with tab activation. | First-class Summer integrations with documented bounds rather than Chrome UI emulation. | Add a user-facing browser-owned shortcut remapping surface before claiming Chrome's shortcut-management UI; retain deterministic conflicts, native panel state, and consistent keyboard and accessibility behavior. | `electron/main/extensions/extensionChromeApis.ts`, `electron/main/extensions/extensionSidePanels.ts`, `ui/store/suggestions.ts` |
-| Native messaging | `sendNativeMessage()` and `connectNative()` discover platform-installed Chrome, Chromium, Edge, and Brave manifests, require the exact extension origin in `allowed_origins`, canonicalize the executable, and launch without a shell. Linux discovery also checks those browsers' Flatpak manifest directories. A bounded Windows `.bat`/`.cmd` wrapper that only invokes an absolute executable and script with `%*` is resolved to a direct launch; other batch files fail closed. One-shot calls use bounded framing and a 30-second deadline; persistent ports authenticate ownership, enforce global/per-extension process and pending-write limits, deliver bounded framed messages, and terminate on disconnect, extension unload, or shutdown. | First-class bounded transport with strict host ownership, framing, backpressure, and lifecycle cleanup; native-host installation and discovery UI remain platform-owned. | Retain authenticated ownership and guaranteed process termination while keeping host discovery limited to compatible Chromium-family registrations. | `electron/main/extensions/extensionNativeMessaging.ts`, `electron/main/extensions/extensionChromeApis.ts` |
+| Native messaging | `sendNativeMessage()` and `connectNative()` discover platform-installed Chrome, Chromium, Edge, and Brave manifests, require the exact extension origin in `allowed_origins`, canonicalize the executable, and launch without a shell. Linux discovery also checks those browsers' Flatpak manifest directories. A bounded Windows `.bat`/`.cmd` wrapper that only invokes an absolute executable and script with `%*` is resolved to a direct launch; other batch files fail closed. One-shot calls use bounded framing and a 30-second deadline; persistent ports authenticate ownership, enforce global/per-extension process and pending-write limits, deliver bounded framed messages, and terminate on disconnect, extension unload, or shutdown. A worker-owned native port holds an authenticated native worker task until it closes. Host disconnect delivery hands that task off through an exact-owner acknowledgement after synchronous listeners run; closing ports remain quota-counted until acknowledgement or a five-second cleanup deadline. Local disconnect, worker stop, unload, shutdown, and failed discovery release the task exactly once; pending discovery keeps its separate admission reservation until it settles. | First-class bounded transport with strict host ownership, framing, backpressure, and lifecycle cleanup; native-host installation and discovery UI remain platform-owned. | Retain authenticated ownership and guaranteed process termination while keeping host discovery limited to compatible Chromium-family registrations. | `electron/main/extensions/extensionNativeMessaging.ts`, `electron/main/extensions/extensionChromeApis.ts` |
 | File-scheme access | Disabled by default. For an extension whose reviewed host declarations include file URLs, the manager can grant or revoke access; Summer reloads the extension with the matching Electron `allowFileAccess` setting and the authenticated status method reports the active grant. | Explicit browser-owned per-extension grant tied to reviewed manifest access. | Keep file access disabled by default, require an explicit user decision, revoke stale grants when reviewed file-host access disappears, and never infer the grant from a host declaration alone. | `electron/main/extensions/extensionManager.ts`, `electron/main/extensions/extensionChromeApis.ts`, `electron/preload/extensionApiShim.ts` |
 | Incognito access | Disabled per extension by default. Extensions Manager can explicitly allow or revoke access; `isAllowedIncognitoAccess()` reports that browser-owned grant. Allowed extensions are loaded separately into the disposable private session while at least one private window exists. Granting access refreshes only matching private tabs, and private toolbar actions and popups stay in that isolated session. | Bounded split runtime. Electron requires a path-backed persistent session to load an extension, so Summer uses a random temporary directory, unloads extensions, clears Chromium data, attempts whole-directory deletion after the last private window, and reclaims locked dead-process leftovers at startup. Reuse is blocked only when neither logical clearing nor physical removal succeeds. | Retain explicit per-extension consent and isolated lifecycle cleanup; adopt a true in-memory extension host if Electron provides one. | `electron/main/extensions/extensionManager.ts`, `electron/main/extensions/privateExtensionSession.ts`, `electron/main/front/privateSessionStorage.ts`, `electron/main/front/sessions.ts`, `electron/main/extensions/extensionActions.ts` |
 | IDs without `crypto.randomUUID` | Browser or Node UUIDs are preferred; supported older contexts use `crypto.getRandomValues`, and identifier generation rejects when secure randomness is unavailable. | Cryptographically random but still non-authoritative identifiers. | Use browser-provided UUIDs in every supported context, or a cryptographically random browser-owned fallback; identifiers remain non-authoritative. | `electron/preload/extensionApiShim.ts` |
+
+## AI extension compatibility verification
+
+### Replacement listeners and native closed shadow roots
+
+`tabs.onReplaced` supports authenticated listener registration, duplicate
+suppression, membership queries and removal in extension pages and workers.
+This is limited listener compatibility: Summer has no browser-owned prerender
+or atomic tab-replacement producer. Navigation, reload, renderer/frame changes
+and close/new-tab sequences must not manufacture `(addedTabId, removedTabId)`
+events. Raw Electron event IDs are not forwarded as Summer tab IDs. Chrome's
+[event contract](https://developer.chrome.com/docs/extensions/reference/api/tabs#event-onReplaced)
+requires an actual replacement lifecycle.
+
+The pinned Electron `44.5.1+wvcus` already supplies native
+`chrome.dom.openOrClosedShadowRoot` in genuine extension content-script worlds.
+The direct live boundary probe confirms a synchronous real closed `ShadowRoot`
+and its contents through native ISOLATED execution. The method is kept native:
+Summer does not synthesize an open-root-only getter, intercept `attachShadow`,
+or project DOM access into ordinary website MAIN worlds. Chrome's
+[DOM API contract](https://developer.chrome.com/docs/extensions/reference/api/dom)
+returns the real root synchronously; an IPC/CDP snapshot cannot substitute for it.
+
+Extensions separately granted `debugger` can also inspect a closed-root fixture
+asynchronously through `DOM.getDocument({depth: -1, pierce: true})`. That path
+retains exact target/extension ownership and rejects commands after detach.
+It neither implements nor grants the synchronous DOM API. The dedicated
+`playwright/extension-remaining-api-boundaries.spec.ts` records these boundaries.
+
+The signed ChatGPT package is exercised through the desktop manager, real
+toolbar action and side-panel host. Installation and background startup are
+separate from authenticated AI browser-control acceptance. Commands, observed
+versions, failures and remaining checks are recorded in
+[AI extension integration tests](ai-extension-integration-tests.md).
+
+Service-worker debugger events now use the authenticated broker. Debugger target
+discovery returns actual Chromium IDs only after mapping them back to current,
+regular-profile browser contents. Registered website popups keep their existing
+native UI and actual window/content identities; they do not become extension
+popups. Private navigation is excluded from the normal-profile navigation
+monitor and event delivery. A created-navigation-target event requires an actual
+native opener and a successfully registered target.
+
+Summer's navigation document IDs and Chromium's native scripting IDs have
+different formats. Document-targeted scripting therefore uses a browser-owned
+snapshot of the requested live frames, a harmless native isolated-world probe to
+obtain their exact native document IDs, and another authenticated generation
+check. The original script is executed against native **document IDs**, never
+downgraded to frame-ID targeting. Results map back to the corresponding Summer
+document identities. The native probe and actual payload both retain Chromium's
+permission and host checks. Navigation, missing IDs, cross-tab identities and
+replacement WebContents fail closed. The extra probe is deliberate: it prevents
+a document ID from being silently redirected to a newer document in the same
+frame. The executable regression is
+`playwright/extension-document-identity.spec.ts`.
+
+`runtime.getContexts()` merges native background/offscreen records with live
+browser-owned sidebar records, then applies the caller's bounded filter. Sidebar
+identities are opaque IDs for committed same-extension documents, retained across
+same-document navigation and removed on destruction or renderer loss. They do
+not authorize scripting. In-place sidebar path changes navigate the existing
+view without artificial close/open events; actual user closure still emits the
+latest document path.
+
+Native messaging retains a per-port correlation token before the asynchronous
+connect response, so an early greeting cannot be lost or confused with another
+port. Early buffering is capped at eight frames and 1 MiB per port. The token
+correlates internal events; it never replaces extension/sender authorization.
+Callback-scoped errors remain available during disconnect handlers and are
+cleared afterward. Missing hosts use Chrome's exact error string so unchanged
+provider code can select its normal fallback.
+
+Startup and verified access-neutral update notifications now use the same
+authenticated lifecycle queue as installation. A registered update listener can
+defer activation until reload or profile restart. The retained candidate is
+revalidated against the signed download's content address before activation;
+invalid candidates are cleared without disabling the current runtime. Updates
+that expand permissions still require the existing browser-owned review.
 
 ## Security boundary
 
@@ -1375,6 +2367,19 @@ propagation on `chrome-extension://` pages. Extensions are never loaded into
 Summer's browser-interface session.
 ## Browser-owned API lifecycle
 
+Incoming native worker Ports now use the same browser-authenticated sender-tab
+classification as native one-shot messages. Electron can attach synthetic tab
+metadata to offscreen WebContents; Summer removes it only after the main process
+confirms the exact live same-extension document is outside its actual tab and
+popup registries. Real registered tabs keep their translated ID; unknown or
+failed classification preserves native metadata. Native methods remain bound to
+the native Port, and callbacks receive the public Port consistently. During the
+bounded two-second classification, startup traffic is buffered up to 64 messages
+and 1 MiB; overflow disconnects the exact Port. Native disconnect errors are
+captured inside Chromium's callback and exposed as scoped `runtime.lastError`
+only during the delayed disconnect callback, with previous descriptors restored.
+This changes no provider package or website authority.
+
 Desktop offscreen documents are owned by Chromium/Electron, not a Summer
 hidden-window implementation. Electron treats unlisted extension APIs as
 [provisional](https://www.electronjs.org/docs/latest/api/extensions/).
@@ -1391,6 +2396,10 @@ runtime channel to its offscreen document. Other extension-page messages use
 Summer's broker; generic extension-page-to-offscreen messaging remains
 unavailable. Keeping these routes exclusive prevents a no-response worker
 listener from receiving the same message through both transports.
+The preload snapshots that native delegate before augmenting Chromium's cached
+runtime namespace; later namespace publication must not replace the delegate
+with Summer's own wrapper. Reuse remains bound to the same extension document
+and its reviewed `offscreen` permission.
 Native offscreen documents use a bounded synchronous clipboard fallback when
 Chromium's `document.execCommand("copy")` returns false. The fallback copies
 only selected text from the top-level document of an installed MV3 extension
@@ -1415,16 +2424,18 @@ Tab queries support URL patterns and normal/popup window filtering. Extension
 pages can open their declared options page with `runtime.openOptionsPage()`.
 Window reads and focus/removal events cover only windows in the current Summer
 profile process. An extension may create one same-extension page in a popup
-window and later focus or resize that popup; it may focus, but not resize, a
-normal Summer browser window. Individual tabs may move between regular windows
-of the same privacy class with Chrome-shaped detach/attach events; moving a
-whole tab group across windows, cross-extension popup navigation, and arbitrary
+window and later focus or resize that popup. It may also resize normal windows
+it created; normal windows created elsewhere may only be focused. Individual tabs may move between regular windows
+of the same privacy class with Chrome-shaped detach/attach events. Whole tab
+groups transfer atomically between owned normal windows of the same session,
+preserving group metadata. Cross-extension popup navigation and arbitrary
 browser-window mutation remain rejected explicitly.
 
 `tabs.sendMessage()` keeps Electron's native delivery for ordinary Summer tabs
 and their content scripts. Tabs returned by browser-owned `windows.create()`
-popups use a reserved ID range and an authenticated Summer route because
-Electron does not register arbitrary `WebContentsView` pages in Chromium's tab
+popups use their actual native `WebContents.id` and an authenticated Summer
+route selected from Main's registered target kind, rather than a numeric range.
+Electron does not register arbitrary extension popup pages in Chromium's tab
 messaging registry. That route accepts only the extension that owns the live
 registered popup, targets only subscribed frames belonging to that exact popup,
 and accepts a response only from a frame that received the message. Closing the
@@ -1620,16 +2631,26 @@ was absent, dynamic `scripting.registerContentScripts()` lifecycle methods were
 missing, and callback-form errors also leaked a rejected Promise. The public API
 surface is now replaceable like Chrome's, callback calls return `undefined`, and
 the authenticated API broker implements bounded register/list/update/unregister
-for MAIN-world JavaScript content scripts. CSS registration and isolated-world
-dynamic scripts remain unsupported, and `document_start` injection currently
-runs at navigation commit. Electron does not attach session frame preloads to
+for MAIN and ISOLATED JavaScript content scripts. New registrations default to
+ISOLATED; persisted MAIN registrations keep their world, and updates preserve
+the current world unless explicitly changed. ISOLATED execution currently
+requires an active managed MV3 extension with a service worker in the regular
+profile. A bounded browser-to-worker request retains native scripting in the
+extension's actual Chromium world, including its content-script runtime and
+messaging. Each frame is matched separately; native document-ID translation
+rechecks current host grants and the exact document before executing signed
+package files. No synthetic world or page-world native bridge substitutes for
+that route. An unavailable worker, private context, inherited-origin document
+that cannot pass native document authorization, or stale navigation fails closed.
+CSS registration remains unsupported, and `document_start` injection currently
+runs at navigation commit rather than before page scripts. Electron does not attach session frame preloads to
 MV2 `backgroundPage` WebContents, so Summer now stages the alias and dynamic
 scripting relay before an MV2 extension's own background scripts; API permission
 checks still execute in the main-process broker. Dynamic registration may
 precede a host grant; each injection rechecks the current regular or private
 profile grant, and committed uninstall purges the registration. MV2 rebroadcasts
 preserve the authenticated content-frame sender after the main-process broker
-maps Electron's native WebContents ID to the public Summer tab ID. The other
+resolves its exact registered target with the same native/public tab ID. The other
 Privacy Badger Python/Selenium functional scenarios have not been run.
 
 The available Chrome-for-Testing 147.0.7727.57 control ran the same 114 tests as
@@ -1821,10 +2842,12 @@ scenarios across 19 page definitions: 14 message-autofill cases, 12 inline-menu
 cases, 11 page-load cases, 15 popup-autofill cases, and 20 notification cases.
 Summer executes 69 of those page scenarios plus the page-load negative control.
 The remaining three are the message, page-load, and popup variants for the
-closed-shadow-root fixture. Bitwarden implements those variants with
-`chrome.dom.openOrClosedShadowRoot`, which Electron does not expose to extension
-content scripts, so the adapter reports that engine limitation as an explicit
-skip rather than silently weakening the assertions. Upstream's explicit
+closed-shadow-root fixture. Those adapter skips were based on an earlier
+assumption that `chrome.dom.openOrClosedShadowRoot` was unavailable. The direct
+native content-world probe now confirms this API in the pinned runtime; the
+three upstream Bitwarden scenarios have not been rerun by that probe, so their
+adapter coverage remains unverified rather than proving an engine limitation.
+Upstream's explicit
 known-failure and not-applicable skips remain the authority. The live public-site
 specs are intentionally outside this deterministic command, and the separate
 web-client accessibility suite does not exercise a browser extension.
@@ -2149,6 +3172,25 @@ and signing obligations without evidence of a user-visible gain. The shared
 pattern adapter keeps that backend replaceable if a future profile identifies
 regex execution as the dominant indexed cost.
 
+## Web Authentication proxy preparation
+
+`webAuthenticationProxy` is not supported by the installed Electron runtime.
+Summer has prepared a browser-process native patch and authenticated page/worker
+broker for its five methods and request events. Calls require a loaded MV3
+extension with the required `webAuthenticationProxy` permission; the permission
+cannot be optional. Missing native capabilities reject, and no renderer
+replacement for `navigator.credentials` is installed. The preparation preserves
+pending requests across worker suspension, cancels stale deliveries and keeps
+native leases exclusively in main. Private execution remains unavailable.
+
+The prepared remote-session notification hook uses the browser-owned user-data directory
+and literal extension ID, with no file-content disclosure. It must not watch a
+person's Chrome profile or synthesize session-state events. Native compilation
+and disposable-profile runtime acceptance are still pending; an exposed API
+object or passing broker fixture does not establish support. See
+[the implementation checkpoint](chrome-extension-namespace-implementation.md#webauthenticationproxy-native-capability-gate)
+and [the prepared native bridge](../native/electron/web-authentication-proxy/IMPLEMENTATION.md).
+
 ## Migrating extensions from another browser
 
 Settings can discover extensions in conventional Chrome, Edge, Opera, Brave,
@@ -2194,3 +3236,87 @@ reparse-point escapes, resolves localized display names only inside the selected
 extension version directory, and invalidates old snapshots when discovery is
 refreshed. Tests must use disposable browser directories; never point automated
 tests at a person's live browser profile.
+
+## Desktop browsing-data storage removal
+
+`browsingData.removeFileSystems`, `removeIndexedDB`, `removeLocalStorage` and
+`removeServiceWorkers`, and the corresponding bulk `remove` categories, now
+delegate to the regular Session's native Chromium data remover. Each request
+selects exactly its requested data type. Origin inclusion or exclusion is passed
+to that remover, including its native partitioned-storage matching; the browser
+does not infer stored origins from open tabs or delete profile files directly.
+`browsingData.removeCacheStorage` and `remove(options, {cacheStorage: true})`
+clear Cache API data for explicit HTTP(S) `origins` in the regular session.
+The stock runtime clears the first-party storage key for each selected origin.
+Global, exclusion-only, and time-scoped requests are rejected. The operation
+leaves partitioned third-party Cache Storage and the HTTP cache outside its scope.
+
+These operations share the existing authenticated extension-page/worker broker
+and reviewed `browsingData` permission. Private execution remains unavailable.
+
+The installed Electron API does not expose a time boundary for these native
+storage operations. A positive `since`, including a fractional millisecond, is
+rejected before any deletion or saved-data confirmation. Empty origin inclusion
+lists and simultaneous `origins`/`excludeOrigins` are rejected, and an explicitly
+empty `originTypes` mask removes nothing. A required options object cannot be
+omitted or replaced with null. Existing password/form-data confirmation remains
+separate; this increment does not remove payment cards or extension storage.
+`cacheStorage` remains separate unfinished work. The real Windows page/worker
+fixture's four-storage-category campaign passed against two HTTP
+origins with actual IndexedDB, local storage, OPFS files, CacheStorage sentinels
+and service-worker registrations. It verifies each type's inclusion, exclusion,
+global and no-op removal, rejection without mutation, unrelated-store/origin
+survival, and extension storage survival. Promise/callback void results and
+scoped callback errors are checked. Evidence is
+`.tmp/bookmarks-browsing-data-live-evidence-parent-20261027.json`. Timed-scope
+parity remains unfinished; these native storage calls cannot silently widen time
+filters to all-time deletion.
+
+### Retired browsing-data methods
+
+`removeAppcache`, `removePluginData` and `removeWebSQL` complete as validated
+no-ops. Their bulk keys and `serverBoundCertificates` are ignored after boolean
+validation; a mixed request removes only its selected active categories. All
+argument and active-scope validation completes before any active deletion or
+saved-data confirmation. `cacheStorage` is active in Chrome and remains an
+explicit unsupported request in Summer, rather than being treated as retired.
+
+Retired-only requests accept finite negative/fractional `since` values and inert
+protected-web/extension origin-type masks. Required object/boolean/list shapes,
+empty inclusion and conflicting-filter checks still apply. Original origin
+strings go to the regular Session's native `clearData` parser with a **literal
+empty `dataTypes` list**. The pinned native implementation converts each string
+through `GURL` and `url::Origin`, rejects opaque origins, then schedules no removal
+operation for that zero mask. No arbitrary request options are forwarded. This
+uses native file/blob/filesystem/registered-scheme validation without a JS origin
+approximation or granting deletion of extension/protected data. Retired filters
+are copied once, validated and frozen; they have no extra per-field size cap.
+Existing transport limits are unchanged (the worker relay limits ordinary
+requests to 1 MiB). Active mixed requests retain their existing filter-size,
+HTTP(S), time and origin-type scopes.
+
+The expanded page/worker fixture checks actual loopback OPFS, IndexedDB, local
+storage, CacheStorage and service-worker sentinels, plus extension storage,
+across retired calls and rejected mixed requests. The rebuilt Windows MV3
+page/worker campaign passes, including native file/blob/filesystem/extension
+origin handling, over-256 filter lists and long valid URLs. The scoped mixed
+request removes only the selected site's local storage and preserves every
+other sentinel. Evidence is
+`.tmp/browsing-data-retired-live-evidence-parent-20261027.json`.
+The earlier integrated 45-suite gate passed 1,058 tests, and all four selected
+browser cases passed: storage/retired methods, bookmarks, portable services and regular
+single-extension DNR. The multiple-extension/private DNR failure was excluded and
+incomplete in that earlier campaign. Its original failed evidence is preserved;
+the later cache-owner/static-settings acceptance is documented in the DNR section
+above and `.tmp/dnr-full12-acceptance-parent-20261028.json`.
+Those earlier results do not establish full type/release gates,
+native engine compilation or untested platform/context parity.
+
+Password and form-data behavior is unchanged. In pinned desktop Chromium 152,
+`removePasswords` reports a deprecated error with its default feature enabled;
+the bulk password key is ignored and settings marks it unselected. Summer still
+offers confirmed all-time/profile-wide password deletion and advertises that
+behavior. `formData` remains active in Chrome and includes timestamped form,
+address and payment-related data; Summer's confirmed profile-only subset omits
+payment cards and rejects unsupported scopes. These known differences require
+separate product decisions, not silent changes under retired-method support.

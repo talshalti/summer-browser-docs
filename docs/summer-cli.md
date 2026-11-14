@@ -24,6 +24,10 @@ macOS edition. Summer discovers fixed, locally installed profiles:
 - the user's absolute `$SHELL`, then installed Bash, Z shell, Fish, POSIX shell,
   Python, and Node.js on Linux and macOS.
 
+The embedded Node.js profile is unavailable in packaged 2.11.0 builds because
+the hardened runtime disables Node mode. It remains available in development;
+installed shell and Python profiles are unaffected.
+
 When an `ipython` or `ipython3` launcher is installed, Summer exposes it as a
 first-class **IPython** REPL profile on every desktop platform. Windows discovery
 also checks the selected Python installation's directory and adjacent `Scripts`

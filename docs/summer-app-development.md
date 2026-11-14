@@ -74,6 +74,27 @@ Every app needs `sap.json` and a runtime entry:
 }
 ```
 
+### Describe the app's purpose
+
+Use the optional manifest `description` to explain what the app does in plain
+language. Start with a short, concrete purpose statement, such as "Write and
+organize notes stored as text files." Store listings use their registry
+`description`. In the Apps Store, hovering or focusing a card lifts its title
+to reveal up to three lines of this text; devices without hover show it directly.
+Narrow cards use a compact title and a shorter preview so the text stays below
+the app-type badge. The badge remains visible and fixed as the title rises;
+the card and its artwork keep their original size.
+Opening the card shows the full description. Descriptions are rendered as plain
+text, never HTML, and apps without one keep the title-only card. The preview is
+app-authored information, not a security or verification guarantee.
+
+Installed, disabled apps are subdued at rest and fade to a slight gray tint on
+hover or keyboard focus in the Apps Store. The 250ms color transition respects
+reduced-motion preferences and keeps the artwork's theme styling. These cards
+use the pointer cursor because they remain clickable; Enter opens the focused
+card's details through the same path as clicking. This preview leaves the app
+disabled and also applies to cards without a description.
+
 ### Localize the app name
 
 Keep `name` as the required, language-neutral fallback. To give browser-owned
@@ -327,6 +348,14 @@ Every app receives `context.storage`, a namespaced structured-data store, and
 `context.crypto.randomBytes()`, a bounded OS CSPRNG capability. Stored values are
 preserved when an app is disabled or updated and removed on authorized
 uninstall.
+
+Desktop storage also offers optional `withExclusiveLock(key, asyncCallback)` for
+cooperating read/change/write operations. Locks are scoped to the app's store and
+key, shared across fresh runtime contexts, and released even when the callback
+throws. Reload persisted state inside the callback before updating it. Ordinary
+`get`, `set`, `delete`, and `batch` do not acquire this lock automatically; it is
+neither a cross-process lock nor a rollback transaction. Do not recursively lock
+the same key. Feature-detect this method on other hosts.
 
 OS credential storage is deliberately narrower. Only an exact canonical
 bundled app whose manifest declares `permissions.access: ["credential-storage"]`

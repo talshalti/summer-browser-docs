@@ -177,6 +177,24 @@ localized label.
 Declarative definitions are static. `visibleWhen` supports simple dynamic
 visibility based on other settings, and values update live. Runtime-generated
 fields and options are not supported by the current native form.
+Numeric drafts save on blur or Enter, including decimal values. Invalid values
+show validation errors without replacing the saved setting; clearing an
+optional number restores its default in both the field and storage.
+
+The trusted desktop AI Services form adds a browser-owned model picker to its
+existing remote model string fields. It discovers choices through a bounded,
+read-only backend catalog action and saves the selected ID through the ordinary
+settings service. Custom IDs remain supported when a provider has no catalog.
+This is an enhancement for the reviewed built-in app, not a new manifest field
+type or a general privilege for installed apps. See [AI Services](ai-services.md)
+for the discovery boundary and limits. `AiModelPicker.vue` is the reusable renderer
+control; its request/cancellation callbacks do not receive credentials.
+While a model setting saves, the picker temporarily disables its controls. If a
+select or custom input owned keyboard focus before saving, it returns focus once
+the same control is enabled again, without scrolling. Tab, pointer interaction,
+focus moving elsewhere, navigation, a connection change, or removal of the picker
+cancels that return. Deliberately leaving custom entry with Enter or blur does not
+move focus back into it. Loading and unavailable catalogs remain disabled.
 
 ## Custom desktop view
 
@@ -217,6 +235,33 @@ forms continue to scroll in the host panel.
 
 Custom views are unavailable on mobile hosts for now; keep essential settings
 available through native manifest fields.
+
+## Browser-owned full-tab settings
+
+Reviewed built-in apps can use a full-tab settings surface when their controls
+need more space. AI Services (`local-ai`) is the first supported app. Its App
+info Settings button, installed-app context menu, and widget settings command
+open `summer://settings/#/apps/local-ai`, reusing an existing settings tab in
+the current regular window when one exists. Other apps retain their current
+embedded settings panels.
+
+The browser owns the eligibility list and renders the existing native settings
+panel over that tab's viewport in trusted chrome. The underlying page receives
+no additional IPC, secrets, or browser APIs. Eligibility requires the enabled,
+trusted built-in package in a regular window; disabling or uninstalling the app
+removes the surface. Native settings validation, credential-vault storage,
+change notifications, and browser-owned approval confirmations remain the same.
+The reusable URL helper is `shared/appSettingsPage.ts`; the tab host lives in
+`BrowserWindowUI.vue`, and `AppSettingsPage.vue` composes the existing panel.
+Connection, Assistant, Agent permissions, and Advanced views have bounded hash
+routes; provider sections with no visible fields are omitted.
+All Anthropic connection and spending controls appear only when the selected
+provider is Anthropic-compatible. Switching providers preserves their saved
+values and validation rules.
+The trusted built-in AI Services form uses its bundled English, Hebrew and
+Arabic setting labels, descriptions and options when a browser translation key
+is unavailable. Other apps retain the ordinary key/fallback behavior. This
+resolver never reads app-declared localization resource paths.
 
 ## Main Settings sidebar entry
 
@@ -387,6 +432,12 @@ or failure state. Late snapshot replies cannot overwrite a newer refresh.
 
 Settings are for persisted configuration, not transient status such as
 progress, connection health, or unread counts.
+
+Desktop chrome receives `app:settings-changed` with the app ID and optional,
+bounded `changedKeys` field-name metadata. Runtime change values never cross
+that notification boundary. Existing listeners that accept only the app ID
+remain compatible. Hosts use the names to invalidate connection-dependent
+state without treating a model or presentation preference as a new connection.
 
 ## Profile language preferences
 

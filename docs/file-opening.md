@@ -98,6 +98,32 @@ durable same-file write, preserving its existing filesystem identity and
 security metadata instead of replacing it with a newly created file. If that
 write fails after mutation starts, Summer makes a best-effort synced restore of
 the original bytes. Grants expire and are revoked when their tab closes.
+Editable grants also bind a SHA-256 digest of a bounded, stable read of the
+original bytes. Before saving, Summer checks that digest through a read-only
+handle and keeps that handle open while acquiring and verifying write access.
+This catches changed content even when a filesystem reports the same size and
+timestamps.
+
+On macOS, opening a file for writing can attach `com.apple.provenance` and
+advance its change time before Summer writes any bytes. Summer permits that
+single transition only when the attribute was absent immediately before the
+writable open and is present afterwards, the original bytes are identical,
+and descriptor-bound native inspection confirms unchanged file object, size,
+modification time, permissions, ownership, link count, BSD flags, generation,
+creation time, ordered ACL, and every other accessible extended attribute name
+and value. Existing provenance cannot change or disappear under this exception;
+a change-time-only difference also fails. Native inspection brackets metadata
+reads with exact nanosecond `fstat` checks and bounds ACL and attribute sizes.
+Inspection failure retains the normal strict change-time checks and cannot
+authorize an exception. The verified post-open identity is local to that save;
+the grant advances only after a successful durable write. Windows and Linux
+retain the normal strict checks.
+
+This compares the accessible state around writable open. It cannot identify
+which process attached provenance, reconstruct transient changes that were
+restored, or inspect private kernel metadata unavailable through public APIs.
+It does not lock out another application from editing concurrently; identity,
+content and pathname checks reject observed races before mutation.
 Text Workspace remains offline-only and its Markdown preview escapes raw HTML
 and blocks image loading.
 Office Viewer is also offline-only. It refuses compressed files over 30 MiB,

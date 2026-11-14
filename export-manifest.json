@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "browserVersion": "2.10.2",
-  "sourceCommit": "dd15291f30fee221320a325089fc5a20679bc2df",
+  "browserVersion": "2.12.0",
+  "sourceCommit": "a87ae34f46449a53282ba581fe8b56983dd6f5cc",
   "basePath": "/summer-browser-docs/",
   "files": [
     {
@@ -16,8 +16,8 @@
     },
     {
       "path": "docs/chrome-extensions.md",
-      "bytes": 162250,
-      "sha256": "86741808cc6548a69263d818452a8dbaf9c3273e8cb4aff35d2b4586f66f51a3"
+      "bytes": 243970,
+      "sha256": "1ae98f4a36a7dbcacdbb4f678d99b09bf30f1ba55c4555c1229ed888fecb5132"
     },
     {
       "path": "docs/default-browser.md",
@@ -31,13 +31,13 @@
     },
     {
       "path": "docs/desktop-to-mobile-capability-reference.md",
-      "bytes": 95881,
-      "sha256": "9bb06f6c5ea18e0cbe61ff4a1ecae97c4fbf2001f621a146f83b3a0e00bd1c45"
+      "bytes": 97918,
+      "sha256": "6eaaed362fdcf8eec2607a3d8339689fb4f10b4590999d05f2d19435d1c4bdbd"
     },
     {
       "path": "docs/file-opening.md",
-      "bytes": 7462,
-      "sha256": "2538cd60746625fab4957d24bf229ef9652b07ddaaf4ddb88cec1a9b18f22ad7"
+      "bytes": 9221,
+      "sha256": "618829d0420310d400c2561ebfa27d17ac1bd2c37a747129b69ef0eb27073cd9"
     },
     {
       "path": "docs/language-preferences-and-translation.md",
@@ -51,8 +51,8 @@
     },
     {
       "path": "docs/privacy-policy.md",
-      "bytes": 16884,
-      "sha256": "eb0a36ee974153503a822d008973860d017cbbdf0293fbac2a6f6f09f76935b4"
+      "bytes": 25194,
+      "sha256": "dbbc6330821547bb2423d5cba9b635d0382c98c617c90e4f6a6bf49f9933721e"
     },
     {
       "path": "docs/private-browsing.md",
@@ -251,18 +251,63 @@
     },
     {
       "path": "docs/release-notes/2.10.2/ar.md",
-      "bytes": 1071,
-      "sha256": "b7fbf52b958fe6364d6409f43155b6f95d33243d7867ae9a4723050fb939f5b3"
+      "bytes": 1395,
+      "sha256": "5c86badc5b788068cdf1f6e2887649a62fa2d154c5e47281caf6fb7530f945f7"
     },
     {
       "path": "docs/release-notes/2.10.2/en.md",
-      "bytes": 699,
-      "sha256": "3252baf2090c0026cd320e528ee40e1d312689d7e9b11bc264c70c5aa28fdd44"
+      "bytes": 885,
+      "sha256": "18d2c9de798e6e2cbe94e50852365d5e578bda9396edf8785b2202d79c5e770a"
     },
     {
       "path": "docs/release-notes/2.10.2/he.md",
-      "bytes": 984,
-      "sha256": "347492d04c957bc5453ae0450513e1e43098ddec35aa0fd9aebfc75c4a00acc8"
+      "bytes": 1287,
+      "sha256": "da23de7093787fb2de0f984a15e1ddb18cdd46493c76366f979cf1e4af7a12d3"
+    },
+    {
+      "path": "docs/release-notes/2.11.0/ar.md",
+      "bytes": 1380,
+      "sha256": "6d500017fbc7106652b0ed10c40729393a2c7e5447885d46a5b8c469977e2a2e"
+    },
+    {
+      "path": "docs/release-notes/2.11.0/en.md",
+      "bytes": 809,
+      "sha256": "126cef2a76efced3218082f225a987cb7dc3305550dbca8b03055343f1f81182"
+    },
+    {
+      "path": "docs/release-notes/2.11.0/he.md",
+      "bytes": 1132,
+      "sha256": "abd1a71c23d6014cd8ee833b908d0aabbf5e3f3838d9a098c3f5055618e35531"
+    },
+    {
+      "path": "docs/release-notes/2.11.1/ar.md",
+      "bytes": 827,
+      "sha256": "57664719b39bf1879f21e77c7d544400f0a64fb3479d54b29474b6ddf4707b11"
+    },
+    {
+      "path": "docs/release-notes/2.11.1/en.md",
+      "bytes": 471,
+      "sha256": "724e8f2a7392d9cfc81bf84daf912a1ad21d162739d593831f21a9750c155f5c"
+    },
+    {
+      "path": "docs/release-notes/2.11.1/he.md",
+      "bytes": 695,
+      "sha256": "48395d4fca82fd6570618ae21a5fb8a03d6684952273eb6b7ef411b7e23cbc84"
+    },
+    {
+      "path": "docs/release-notes/2.12.0/ar.md",
+      "bytes": 1255,
+      "sha256": "20b65957fb2fef9d9fbb7e14510fc84240b98bbc1ade19895411866a952a80ac"
+    },
+    {
+      "path": "docs/release-notes/2.12.0/en.md",
+      "bytes": 822,
+      "sha256": "9f0604dd06cca382b467f81bc11986ed8b066d452d03dc1025ea39794ebe952c"
+    },
+    {
+      "path": "docs/release-notes/2.12.0/he.md",
+      "bytes": 1123,
+      "sha256": "9b16b26995904bf17b92b1d5540c18fbf9f43c1aa66fa7598af0734fedf570a1"
     },
     {
       "path": "docs/release-notes/2.2.0/ar.md",
@@ -526,13 +571,13 @@
     },
     {
       "path": "docs/summer-app-development.md",
-      "bytes": 25338,
-      "sha256": "c3b32cfb577c2aeffc7cec30f184b83007f4063a5e255937c4f8afef4422aeba"
+      "bytes": 27215,
+      "sha256": "6963071c7229c617ee3067b384a40418175220b6d75d3097e201f00493c2636b"
     },
     {
       "path": "docs/summer-app-settings.md",
-      "bytes": 17630,
-      "sha256": "bbceb183ab25f2c69e20fe911c8e94727afe846554bb33f05dcfe9bff68ba1e3"
+      "bytes": 21091,
+      "sha256": "bfc03f4f058c527a9ede0ecf83ff98519115d50733e63afd28d02192ca177490"
     },
     {
       "path": "docs/summer-app-submission.md",
@@ -546,8 +591,8 @@
     },
     {
       "path": "docs/summer-app-widgets.md",
-      "bytes": 23187,
-      "sha256": "3c1fab3c632f6acf611466cebb828d3eada506b2b27c8c2bf6405a64aaeb72fa"
+      "bytes": 23645,
+      "sha256": "c70d872c051f93000eaa90c2c7f90d9c10cec47b526698f19ecf364fbeb49854"
     },
     {
       "path": "docs/summer-builtin-webpages.md",
@@ -556,8 +601,8 @@
     },
     {
       "path": "docs/summer-cli.md",
-      "bytes": 13818,
-      "sha256": "d52c1565cab52ffae25ecd4bec6a9127fb3134f24149f1f75ff396dec37a357e"
+      "bytes": 14031,
+      "sha256": "9026eca7db41a950353f186da9ca5f09d4b5315edef4a5f743f3bd2ca71b275d"
     },
     {
       "path": "docs/window-summi-api.md",
@@ -571,8 +616,8 @@
     },
     {
       "path": "release-manifest.schema.json",
-      "bytes": 1243,
-      "sha256": "db4f357daba90d6dbd477ec24d7b83e679d3f9d729e7be5de41d38649f79de03"
+      "bytes": 2116,
+      "sha256": "89a7bd9d77acca0af19ffff4e39dcbf36893a55ff4baf5b6c901676dc9a9d352"
     },
     {
       "path": "RIGHTS.md",
@@ -587,7 +632,7 @@
     {
       "path": "site/404.html",
       "bytes": 3487,
-      "sha256": "be795b0eb3caed2b087fb4ec774c5e4582098edc7531d1a7770b141b79e63c98"
+      "sha256": "31dcc5b317e16c2949fb3affe08beaff36264ad6386d08735412c35b49fa5b0d"
     },
     {
       "path": "site/assets/64x64-B1L0mOhL.png",
@@ -600,9 +645,9 @@
       "sha256": "79afd14b80d0e96528cd231301a24fd26583a42b36f24c50e96e12f56258d96f"
     },
     {
-      "path": "site/assets/docs-BvuvQPxF.js",
-      "bytes": 1127369,
-      "sha256": "0311abddd108971e28d46bea9d2aefc81ddb295d56b7ef83fed09b70a551fd42"
+      "path": "site/assets/docs-BudtNOyM.js",
+      "bytes": 1140560,
+      "sha256": "c600ecae700dd22d26450794846ff12c41e71275406a7aaa67fb1d8e4da58d76"
     },
     {
       "path": "site/fonts/NotoNaskhArabic-VariableFont_wght.ttf",
@@ -612,7 +657,7 @@
     {
       "path": "site/index.html",
       "bytes": 3487,
-      "sha256": "be795b0eb3caed2b087fb4ec774c5e4582098edc7531d1a7770b141b79e63c98"
+      "sha256": "31dcc5b317e16c2949fb3affe08beaff36264ad6386d08735412c35b49fa5b0d"
     }
   ]
 }

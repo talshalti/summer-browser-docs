@@ -284,7 +284,7 @@ destroyed/recreated host from being accepted by the current host.
 | Site permissions | Shared `browser-core` exact-origin validation, camera/microphone/notification decision aggregation, OS-versus-site interpretation, and a versioned repository now drive mobile; desktop saves scheme/host/effective-port decisions through the same validator, retains legacy hostname blocks, and requires renewed consent for legacy allows; Settings revocation, Android OS-grant and remembered-allow capture, packaged Android/iOS deny/restart/reset, and OS-versus-site denial evidence pass | Add signed physical-device allow evidence on both platforms | B/C | Public preview |
 | Passwords and autofill | Platform-managed WebView/WKWebView Autofill remains available; Android also has a native phone-local vault, bounded Settings entry, and browser-owned website fill/save. iOS retains its platform-managed password path. Password sync is not implemented | Complete Android physical-device and encrypted-recovery checks for the [phone-local password manager](mobile-password-manager-design.md); defer iOS vault work until native validation is available | B/C | Public preview gate |
 | Credit cards | Platform-managed browser-engine Autofill is the supported baseline; card data never enters Vue and the UI labels support unverified | Prove signed physical-device behavior before advertising support | B/C | Public preview gate |
-| Web payments | Ordinary Android website tabs enable WebView's feature-gated Payment Request API and declare only the three Chromium payment-app query intents required for Google Pay; payment credentials and results remain between the website, WebView, and payment app, while Summer Apps, extension views, Vue, and Capacitor receive no payment bridge | Complete Google Pay integration publication and signed physical-device checkout evidence before advertising support; iOS payment support remains a separate platform workstream | C | Public preview gate |
+| Web payments | Ordinary Android website tabs default to website-owned web checkout; translated Page controls provide an optional exact-origin Use payment apps choice, private-tab ephemeral. Popups inherit the effective opener mode before transport and exact secure Google payment/authentication origins retain it. No merchant allowlist, SDK interception, cookie-policy change or payment bridge. The user reported Kupat cards and normal cancellation in the earlier site-scoped APK | Current generalized APK/device and other-merchant verification remain pending; payment completion/production approval are unverified. Native Google Pay app publication and web-route browser-host approval requirements remain unresolved; iOS is separate | C | Public preview gate |
 | WebAuthn and passkeys | Non-secret capability status is implemented; Android browser-mode/provider approval and Apple managed-browser entitlement remain external gates | Implement and verify engine-owned behavior only after entitlements/provider policy are available | C | Public preview gate |
 | Browser profiles | Not implemented | Explicitly outside the current blueprint | D | Deferred |
 | Private browsing | Native private tabs with regular-session exclusion implemented in the mobile contract and phone UI; iOS uses a shared non-persistent website-data store, while Android requires the installed WebView provider's separate-profile capability and fails closed when it is unavailable | Keep private tabs out of restore, regular suggestions, extensions, remembered permissions, notifications, and downloads; disable Android WebView autofill; add signed-device isolation and process-kill evidence on both platforms | B/C/D | Public preview gate |
@@ -472,14 +472,40 @@ later phase requiring a separate design for end-to-end encryption, explicit
 device enrollment, recovery, revocation, conflict and deletion semantics, and
 data loss. The current implementation has no password sync.
 
-Android web payments follow the same platform-owned boundary. Summer enables
-Payment Request only on ordinary website WebViews when the installed provider
-advertises support and grants package visibility only for the required payment
-app intents. The website and Android payment app own checkout data and results;
+Android web payments follow the same website/platform-owned boundary. Summer
+starts ordinary website WebViews with native Payment Request disabled and
+website-owned web checkout as the default, without a merchant-site allowlist.
+Translated **Page controls → Use payment apps** is off by default and can enable
+feature-gated native Payment Request for the exact scheme/host/effective-port
+origin. Mode changes reload; zoom and desktop changes preserve routing.
+Legacy records use web checkout without losing valid display choices. Private
+choices are tab-only and cannot read regular preferences. Popups inherit the
+effective opener mode before WebView transport; exact HTTPS `pay.google.com`,
+`accounts.google.com`, and `payments.google.com`, with no credentials and omitted
+port or 443, retain it. Other destinations clear inheritance and use their own
+choice/default. The control displays the effective popup mode, and an explicit
+mode change clears inheritance. Stale layout URLs cannot change routing.
+Package visibility is granted only
+for the required payment-app intents. The website and payment provider own
+checkout data and results;
 Summer does not add a JavaScript interface, copy payment payloads into trusted
-state, or enable the API in Summer App or extension WebViews. Google Pay remains
-release-gated until the app integration is published with Google and a signed
-physical-device checkout succeeds.
+state, or enable the API in Summer App or extension WebViews. Cookie policy is
+unchanged. Native Google Pay app publication remains unconfirmed; the separate
+web route reached the card selector in the isolated test app according to the
+user, without registering Summer as a merchant. Cards and normal cancellation
+were also user-confirmed in the earlier Kupat-scoped normal APK. The current
+generalized APK and other merchants remain unverified, as do payment completion
+and production approval. There is no SDK interception or external-browser
+checkout handoff. Card selection does not establish production approval.
+
+Desktop-site mode preserves WebView payment discovery with a capability-gated
+custom-UA marker only when native Payment Request is enabled. Website-owned web
+flow removes `wv` and `Version/4.0` in mobile mode and adds no desktop payment
+marker. Native-payment mode restores the original provider mobile identity. See the
+[Android Google Pay requirements and browser-host
+approval research](android-google-pay.md) for verified platform requirements,
+the merchant-oriented published process, and the remaining browser onboarding
+questions for Google.
 
 ### Browser profiles and private browsing
 
